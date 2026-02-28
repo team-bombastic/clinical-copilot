@@ -6,8 +6,11 @@ import {
 } from '@aws-sdk/client-transcribe-streaming';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { pcmProcessorWorkletCode } from './pcm-processor.worklet';
+import { AWS_REGION_DEFAULT, AUDIO_SAMPLE_RATE, AUDIO_ENCODING } from '@/constants/config';
+import { ERR_NOT_AUTHENTICATED, ERR_TRANSCRIPTION_FAILED } from '@/constants/errors';
 
-const FILLER_WORDS = /\b(um|uh|erm|ah|hmm|you know|basically|actually|literally|sort of|kind of)\b/gi;
+const FILLER_WORDS =
+  /\b(um|uh|erm|ah|hmm|you know|basically|actually|literally|sort of|kind of)\b/gi;
 const FILLER_LIKE = /,?\s*\blike\b\s*,?/g;
 
 function cleanTranscript(text: string): string {
@@ -151,10 +154,10 @@ export function useTranscribe(): UseTranscribeReturn {
         // 5. Get credentials & create client
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error('Not authenticated');
+        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
 
-        const region = session.tokens?.idToken?.payload?.['custom:region'] as string
-          || 'ap-south-1';
+        const region =
+          (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
 
         const client = new TranscribeStreamingClient({
           region,
@@ -170,8 +173,8 @@ export function useTranscribe(): UseTranscribeReturn {
           ...(useAutoDetect
             ? { IdentifyLanguage: true, LanguageOptions: 'en-IN,hi-IN' }
             : { LanguageCode: languageCode as 'en-IN' | 'hi-IN' }),
-          MediaEncoding: 'pcm',
-          MediaSampleRateHertz: 16000,
+          MediaEncoding: AUDIO_ENCODING,
+          MediaSampleRateHertz: AUDIO_SAMPLE_RATE,
           AudioStream: audioStream(),
         });
 
@@ -218,7 +221,7 @@ export function useTranscribe(): UseTranscribeReturn {
           }
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Transcription failed';
+        const msg = err instanceof Error ? err.message : ERR_TRANSCRIPTION_FAILED;
         if (!stoppedRef.current) {
           setError(msg);
         }

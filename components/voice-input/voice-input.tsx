@@ -3,10 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranscribe, TranscriptSegment } from './use-transcribe';
 import { useBatchTranscribe, ConsultationSegment } from './use-batch-transcribe';
-import {
-  TranslateClient,
-  TranslateTextCommand,
-} from '@aws-sdk/client-translate';
+import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import {
   STREAMING_LANGUAGES,
@@ -16,6 +13,35 @@ import {
   getLanguageLabel,
   getLanguageOptions,
 } from './languages';
+import DocumentGenerator from '../document-generator/document-generator';
+import { LANGUAGE_LABELS, getSpeakerLabel } from '@/constants/mappings';
+import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
+import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
+import {
+  MODE_CONSULTATION,
+  MODE_DICTATION,
+  TITLE_CONSULTATION,
+  TITLE_DICTATION,
+  OPTGROUP_REALTIME,
+  OPTGROUP_OTHER,
+  LISTENING_TEXT,
+  PROCESSING_CONSULTATION_TEXT,
+  CLEAR_BUTTON_TEXT,
+  GENERATE_BUTTON_TEXT,
+  TRANSLATION_SECTION_LABEL,
+  TRANSLATING_FALLBACK,
+  BADGE_MIXED_LANGUAGE,
+  BADGE_DETECTED_PREFIX,
+  placeholderConsultation,
+  placeholderStreaming,
+  placeholderBatch,
+  recordingConsultation,
+  recordingBatch,
+  processingBatch,
+  TOOLTIP_STOP_RECORDING,
+  TOOLTIP_START_RECORDING,
+} from '@/constants/ui-strings';
+import styles from './voice-input.module.css';
 
 type InputMode = 'consultation' | 'dictation';
 
@@ -30,32 +56,22 @@ function getBatchFunctionName(): string {
   }
 }
 
-const LANGUAGE_LABELS: Record<string, string> = {
-  'en-IN': 'English',
-  'en-US': 'English',
-  'hi-IN': 'Hindi',
-};
-
 /**
  * Translates only Hindi segments, keeps English as-is,
  * and returns the composed English transcript.
  */
-async function translateSegments(
-  segments: TranscriptSegment[]
-): Promise<string> {
+async function translateSegments(segments: TranscriptSegment[]): Promise<string> {
   const hindiSegments = segments.filter((s) => s.languageCode.startsWith('hi'));
   if (hindiSegments.length === 0) {
-    // Everything is English — no translation needed
     return '';
   }
 
   const session = await fetchAuthSession();
   const credentials = session.credentials;
-  if (!credentials) throw new Error('Not authenticated');
+  if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
 
   const region =
-    (session.tokens?.idToken?.payload?.['custom:region'] as string) ||
-    'ap-south-1';
+    (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
 
   const client = new TranslateClient({
     region,
@@ -66,7 +82,6 @@ async function translateSegments(
     },
   });
 
-  // Translate all Hindi text in one call (joined with " | " separator to preserve boundaries)
   const separator = ' | ';
   const hindiTexts = hindiSegments.map((s) => s.text);
   const joinedHindi = hindiTexts.join(separator);
@@ -81,13 +96,11 @@ async function translateSegments(
 
   const translatedParts = (response.TranslatedText || '').split(separator);
 
-  // Build a map from Hindi segment text to its translation
   const translationMap = new Map<string, string>();
   hindiSegments.forEach((seg, i) => {
     translationMap.set(seg.text, translatedParts[i]?.trim() || seg.text);
   });
 
-  // Compose the full English version: English segments as-is, Hindi segments translated
   const result = segments
     .map((seg) => {
       if (seg.languageCode.startsWith('hi')) {
@@ -100,21 +113,13 @@ async function translateSegments(
   return result;
 }
 
-const SPEAKER_LABELS: Record<string, string> = {
-  spk_0: 'Doctor',
-  spk_1: 'Patient',
-};
-
-function getSpeakerLabel(speaker: string): string {
-  return SPEAKER_LABELS[speaker] || speaker;
-}
-
 export default function VoiceInput() {
   const [inputMode, setInputMode] = useState<InputMode>('dictation');
   const [selectedLanguage, setSelectedLanguage] = useState('auto');
   const [englishTranslation, setEnglishTranslation] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
+  const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
 
   const streaming = useTranscribe();
   const batch = useBatchTranscribe(getBatchFunctionName());
@@ -122,17 +127,10 @@ export default function VoiceInput() {
   const isConsultation = inputMode === 'consultation';
   const isStreaming = !isConsultation && isStreamingLanguage(selectedLanguage);
   const isBusy =
-    streaming.isRecording ||
-    streaming.isConnecting ||
-    batch.isRecording ||
-    batch.isProcessing;
+    streaming.isRecording || streaming.isConnecting || batch.isRecording || batch.isProcessing;
 
-  // Track whether any Hindi segments exist
-  const hasHindi = streaming.segments.some((s) =>
-    s.languageCode.startsWith('hi')
-  );
+  const hasHindi = streaming.segments.some((s) => s.languageCode.startsWith('hi'));
 
-  // Debounced per-segment translation for streaming mode
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRequestRef = useRef(0);
 
@@ -159,16 +157,14 @@ export default function VoiceInput() {
         }
       } catch (err) {
         if (requestId === lastRequestRef.current) {
-          setTranslateError(
-            err instanceof Error ? err.message : 'Translation failed'
-          );
+          setTranslateError(err instanceof Error ? err.message : ERR_TRANSLATION_FAILED);
         }
       } finally {
         if (requestId === lastRequestRef.current) {
           setIsTranslating(false);
         }
       }
-    }, 600);
+    }, TRANSLATION_DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -187,7 +183,6 @@ export default function VoiceInput() {
       if (newMode === inputMode) return;
       clearAllState();
       setInputMode(newMode);
-      // Reset language: consultation defaults to en-IN, dictation to auto
       setSelectedLanguage(newMode === 'consultation' ? 'en-IN' : 'auto');
     },
     [inputMode, clearAllState]
@@ -195,7 +190,6 @@ export default function VoiceInput() {
 
   const handleMicClick = useCallback(() => {
     if (isConsultation) {
-      // Consultation always uses batch
       if (batch.isRecording) {
         batch.stopRecording();
       } else {
@@ -240,42 +234,25 @@ export default function VoiceInput() {
     [clearAllState]
   );
 
-  // Determine what to display
-  const currentTranscript = isStreaming
-    ? streaming.transcript
-    : batch.transcript;
+  const currentTranscript = isStreaming ? streaming.transcript : batch.transcript;
   const currentPartial = isStreaming ? streaming.partialTranscript : '';
   const displayValue =
-    currentTranscript +
-    (currentPartial
-      ? (currentTranscript ? ' ' : '') + currentPartial
-      : '');
+    currentTranscript + (currentPartial ? (currentTranscript ? ' ' : '') + currentPartial : '');
 
-  const currentError = isStreaming
-    ? streaming.error || translateError
-    : batch.error;
+  const currentError = isStreaming ? streaming.error || translateError : batch.error;
 
-  // Language badge for streaming — show the most recent detected language
   const detectedLabel = streaming.detectedLanguage
     ? LANGUAGE_LABELS[streaming.detectedLanguage] || streaming.detectedLanguage
     : null;
 
-  // Show language mix badge when both languages detected
-  const hasEnglish = streaming.segments.some((s) =>
-    s.languageCode.startsWith('en')
-  );
+  const hasEnglish = streaming.segments.some((s) => s.languageCode.startsWith('en'));
   const mixedLanguage = hasHindi && hasEnglish;
 
-  // Translation display (dictation mode only)
   const showTranslation =
     !isConsultation &&
-    (isStreaming
-      ? hasHindi && (englishTranslation || isTranslating)
-      : batch.translatedText);
+    (isStreaming ? hasHindi && (englishTranslation || isTranslating) : batch.translatedText);
 
-  const translationContent = isStreaming
-    ? englishTranslation
-    : batch.translatedText;
+  const translationContent = isStreaming ? englishTranslation : batch.translatedText;
   const isTranslationLoading = isStreaming ? isTranslating : false;
 
   const updateSegment = useCallback(
@@ -287,50 +264,44 @@ export default function VoiceInput() {
     [batch]
   );
 
-  // Whether we have consultation results to show
   const hasConsultationResults = isConsultation && batch.segments.length > 0;
   const hasAnyContent = currentTranscript || batch.translatedText || hasConsultationResults;
+  const isRecordingActive = streaming.isRecording || batch.isRecording;
 
   return (
-    <div style={styles.card}>
+    <div className={styles.card}>
       {/* Mode toggle */}
-      <div style={styles.modeToggleRow}>
-        <div style={styles.modeToggle}>
+      <div className={styles.modeToggleRow}>
+        <div className={styles.modeToggle}>
           <button
             onClick={() => handleModeSwitch('consultation')}
             disabled={isBusy}
-            style={{
-              ...styles.modeButton,
-              ...(isConsultation ? styles.modeButtonActive : {}),
-            }}
+            className={`${styles.modeButton} ${isConsultation ? styles.modeButtonActive : ''}`}
           >
-            Consultation
+            {MODE_CONSULTATION}
           </button>
           <button
             onClick={() => handleModeSwitch('dictation')}
             disabled={isBusy}
-            style={{
-              ...styles.modeButton,
-              ...(!isConsultation ? styles.modeButtonActive : {}),
-            }}
+            className={`${styles.modeButton} ${!isConsultation ? styles.modeButtonActive : ''}`}
           >
-            Dictation
+            {MODE_DICTATION}
           </button>
         </div>
       </div>
 
       {/* Header: language selector + mic button */}
-      <div style={styles.headerRow}>
-        <div style={styles.headerLeft}>
-          <span style={styles.cardTitle}>
-            {isConsultation ? 'Consultation Recording' : 'Clinical Notes'}
+      <div className={styles.headerRow}>
+        <div className={styles.headerLeft}>
+          <span className={styles.cardTitle}>
+            {isConsultation ? TITLE_CONSULTATION : TITLE_DICTATION}
           </span>
           {isConsultation ? (
             <select
               value={selectedLanguage}
               onChange={handleLanguageChange}
               disabled={isBusy}
-              style={styles.languageSelect}
+              className={styles.languageSelect}
             >
               {CONSULTATION_LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>
@@ -343,16 +314,16 @@ export default function VoiceInput() {
               value={selectedLanguage}
               onChange={handleLanguageChange}
               disabled={isBusy}
-              style={styles.languageSelect}
+              className={styles.languageSelect}
             >
-              <optgroup label="Real-time">
+              <optgroup label={OPTGROUP_REALTIME}>
                 {STREAMING_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.label}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="Other Languages">
+              <optgroup label={OPTGROUP_OTHER}>
                 {BATCH_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.label}
@@ -366,20 +337,11 @@ export default function VoiceInput() {
         <button
           onClick={handleMicClick}
           disabled={streaming.isConnecting || batch.isProcessing}
-          style={{
-            ...styles.micButton,
-            ...(streaming.isRecording || batch.isRecording
-              ? styles.micButtonRecording
-              : {}),
-          }}
-          title={
-            streaming.isRecording || batch.isRecording
-              ? 'Stop recording'
-              : 'Start recording'
-          }
+          className={`${styles.micButton} ${isRecordingActive ? styles.micButtonRecording : ''}`}
+          title={isRecordingActive ? TOOLTIP_STOP_RECORDING : TOOLTIP_START_RECORDING}
         >
           {streaming.isConnecting ? (
-            <span style={styles.spinner} />
+            <span className={styles.spinner} />
           ) : (
             <svg
               width="22"
@@ -402,18 +364,16 @@ export default function VoiceInput() {
 
       {/* Recording indicator (streaming mode) */}
       {!isConsultation && isStreaming && streaming.isRecording && (
-        <div style={styles.statusRow}>
-          <div style={styles.listeningIndicator}>
-            <span style={styles.listeningDot} />
-            Listening...
+        <div className={styles.statusRow}>
+          <div className={styles.listeningIndicator}>
+            <span className={styles.listeningDot} />
+            {LISTENING_TEXT}
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div className={styles.statusFlexRow}>
             {mixedLanguage ? (
-              <span style={styles.languageBadge}>English + Hindi</span>
+              <span className={styles.languageBadge}>{BADGE_MIXED_LANGUAGE}</span>
             ) : (
-              detectedLabel && (
-                <span style={styles.languageBadge}>{detectedLabel}</span>
-              )
+              detectedLabel && <span className={styles.languageBadge}>{detectedLabel}</span>
             )}
           </div>
         </div>
@@ -421,61 +381,53 @@ export default function VoiceInput() {
 
       {/* Recording indicator (batch/consultation mode) */}
       {(isConsultation || !isStreaming) && batch.isRecording && (
-        <div style={styles.statusRow}>
-          <div style={styles.listeningIndicator}>
-            <span style={styles.listeningDot} />
+        <div className={styles.statusRow}>
+          <div className={styles.listeningIndicator}>
+            <span className={styles.listeningDot} />
             {isConsultation
-              ? `Recording consultation (${getLanguageLabel(selectedLanguage)})...`
-              : `Recording (${getLanguageLabel(selectedLanguage)})...`}
+              ? recordingConsultation(getLanguageLabel(selectedLanguage))
+              : recordingBatch(getLanguageLabel(selectedLanguage))}
           </div>
         </div>
       )}
 
       {/* Processing spinner (batch mode) */}
       {batch.isProcessing && (
-        <div style={styles.statusRow}>
-          <div style={styles.processingIndicator}>
-            <span style={styles.spinner} />
+        <div className={styles.statusRow}>
+          <div className={styles.processingIndicator}>
+            <span className={styles.spinner} />
             {isConsultation
-              ? 'Processing consultation...'
-              : `Processing ${getLanguageLabel(selectedLanguage)} audio...`}
+              ? PROCESSING_CONSULTATION_TEXT
+              : processingBatch(getLanguageLabel(selectedLanguage))}
           </div>
         </div>
       )}
 
       {/* Detected language badge when not recording (streaming) */}
-      {!isConsultation &&
-        isStreaming &&
-        !streaming.isRecording &&
-        streaming.transcript && (
-          <div style={styles.statusRow}>
-            {mixedLanguage ? (
-              <span style={styles.languageBadge}>
-                Detected: English + Hindi
+      {!isConsultation && isStreaming && !streaming.isRecording && streaming.transcript && (
+        <div className={styles.statusRow}>
+          {mixedLanguage ? (
+            <span className={styles.languageBadge}>
+              {BADGE_DETECTED_PREFIX} {BADGE_MIXED_LANGUAGE}
+            </span>
+          ) : (
+            detectedLabel && (
+              <span className={styles.languageBadge}>
+                {BADGE_DETECTED_PREFIX} {detectedLabel}
               </span>
-            ) : (
-              detectedLabel && (
-                <span style={styles.languageBadge}>
-                  Detected: {detectedLabel}
-                </span>
-              )
-            )}
-          </div>
-        )}
+            )
+          )}
+        </div>
+      )}
 
       {/* Consultation results: conversation view */}
       {hasConsultationResults ? (
-        <div style={styles.conversationView}>
+        <div className={styles.conversationView}>
           {batch.segments.map((seg: ConsultationSegment, idx: number) => (
-            <div key={idx} style={styles.segmentRow}>
-              <div style={styles.speakerHeader}>
+            <div key={idx} className={styles.segmentRow}>
+              <div className={styles.speakerHeader}>
                 <span
-                  style={{
-                    ...styles.speakerBadge,
-                    ...(seg.speaker === 'spk_0'
-                      ? styles.speakerDoctor
-                      : styles.speakerPatient),
-                  }}
+                  className={`${styles.speakerBadge} ${seg.speaker === 'spk_0' ? styles.speakerDoctor : styles.speakerPatient}`}
                 >
                   {getSpeakerLabel(seg.speaker)}
                 </span>
@@ -483,16 +435,14 @@ export default function VoiceInput() {
               <textarea
                 value={seg.text}
                 onChange={(e) => updateSegment(idx, 'text', e.target.value)}
-                style={styles.segmentTextarea}
+                className={styles.segmentTextarea}
                 rows={2}
               />
               {seg.translatedText && seg.translatedText !== seg.text && (
                 <textarea
                   value={seg.translatedText}
-                  onChange={(e) =>
-                    updateSegment(idx, 'translatedText', e.target.value)
-                  }
-                  style={styles.segmentTranslationTextarea}
+                  onChange={(e) => updateSegment(idx, 'translatedText', e.target.value)}
+                  className={styles.segmentTranslationTextarea}
                   rows={2}
                 />
               )}
@@ -500,364 +450,58 @@ export default function VoiceInput() {
           ))}
         </div>
       ) : (
-        /* Textarea — original transcription (dictation mode) */
         <textarea
           value={displayValue}
           onChange={handleTextChange}
           placeholder={
             isConsultation
-              ? `Tap the mic to record a consultation in ${getLanguageLabel(selectedLanguage)}...`
+              ? placeholderConsultation(getLanguageLabel(selectedLanguage))
               : isStreaming
-                ? 'Tap the mic and speak — language is detected automatically...'
-                : `Tap the mic, speak in ${getLanguageLabel(selectedLanguage)}, then stop to transcribe...`
+                ? placeholderStreaming
+                : placeholderBatch(getLanguageLabel(selectedLanguage))
           }
-          style={styles.textarea}
+          className={styles.textarea}
           rows={6}
         />
       )}
 
       {/* Clear button */}
       {hasAnyContent && (
-        <button onClick={handleClear} style={styles.clearButton}>
-          Clear
+        <button onClick={handleClear} className={styles.clearButton}>
+          {CLEAR_BUTTON_TEXT}
         </button>
       )}
 
       {/* Error display */}
-      {currentError && <div style={styles.errorBox}>{currentError}</div>}
+      {currentError && <div className={styles.errorBox}>{currentError}</div>}
 
       {/* English translation (dictation mode only) */}
       {showTranslation && (
-        <div style={styles.translationSection}>
-          <div style={styles.translationHeader}>
-            <span style={styles.translationLabel}>English Translation</span>
-            {isTranslationLoading && <span style={styles.translatingDot} />}
+        <div className={styles.translationSection}>
+          <div className={styles.translationHeader}>
+            <span className={styles.translationLabel}>{TRANSLATION_SECTION_LABEL}</span>
+            {isTranslationLoading && <span className={styles.translatingDot} />}
           </div>
-          <div style={styles.translationText}>
-            {translationContent || 'Translating...'}
-          </div>
+          <div className={styles.translationText}>{translationContent || TRANSLATING_FALLBACK}</div>
         </div>
       )}
 
-      {/* Generate button — visible when transcription is available and not recording */}
+      {/* Generate button */}
       {hasAnyContent && !isBusy && (
-        <button onClick={() => {}} style={styles.generateButton}>
-          Generate Medical Documents
+        <button onClick={() => setShowDocumentGenerator(true)} className={styles.generateButton}>
+          {GENERATE_BUTTON_TEXT}
         </button>
       )}
 
-      <style>{keyframeStyles}</style>
+      {/* Document Generator Modal */}
+      {showDocumentGenerator && (
+        <DocumentGenerator
+          transcription={currentTranscript}
+          segments={batch.segments}
+          mode={isConsultation ? 'consultation' : 'dictation'}
+          onClose={() => setShowDocumentGenerator(false)}
+        />
+      )}
     </div>
   );
 }
-
-const keyframeStyles = `
-  @keyframes pulse-ring {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-  }
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-
-const styles: Record<string, React.CSSProperties> = {
-  card: {
-    background: 'rgba(255, 255, 255, 0.06)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '24px',
-    padding: '28px 32px',
-    width: '100%',
-    maxWidth: '640px',
-    boxShadow:
-      '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) inset, 0 1px 0 rgba(255, 255, 255, 0.08) inset',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  modeToggleRow: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  modeToggle: {
-    display: 'inline-flex',
-    background: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: '12px',
-    padding: '3px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-  },
-  modeButton: {
-    padding: '8px 20px',
-    borderRadius: '10px',
-    border: 'none',
-    background: 'transparent',
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: '0.82rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    letterSpacing: '0.01em',
-  },
-  modeButtonActive: {
-    background: 'rgba(99, 102, 241, 0.25)',
-    color: 'rgba(255, 255, 255, 0.95)',
-    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.2)',
-  },
-  headerRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '16px',
-  },
-  headerLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  cardTitle: {
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  languageSelect: {
-    background: 'rgba(255, 255, 255, 0.08)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: '10px',
-    padding: '6px 10px',
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontSize: '0.82rem',
-    outline: 'none',
-    cursor: 'pointer',
-    maxWidth: '220px',
-  },
-  micButton: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    border: 'none',
-    background:
-      'linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8))',
-    color: '#ffffff',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)',
-  },
-  micButtonRecording: {
-    background:
-      'linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9))',
-    boxShadow: '0 4px 16px rgba(239, 68, 68, 0.3)',
-    animation: 'pulse-ring 1.5s infinite',
-  },
-  statusRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '12px',
-  },
-  listeningIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '0.85rem',
-    color: 'rgba(252, 165, 165, 0.9)',
-    fontWeight: 500,
-  },
-  listeningDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    background: 'rgba(239, 68, 68, 0.8)',
-    animation: 'blink 1s infinite',
-    display: 'inline-block',
-  },
-  processingIndicator: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    fontSize: '0.85rem',
-    color: 'rgba(165, 180, 252, 0.9)',
-    fontWeight: 500,
-  },
-  languageBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 12px',
-    borderRadius: '20px',
-    background: 'rgba(99, 102, 241, 0.15)',
-    border: '1px solid rgba(99, 102, 241, 0.25)',
-    color: 'rgba(165, 180, 252, 0.95)',
-    fontSize: '0.78rem',
-    fontWeight: 600,
-    letterSpacing: '0.02em',
-  },
-  textarea: {
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    borderRadius: '14px',
-    padding: '14px 16px',
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: '0.95rem',
-    lineHeight: '1.6',
-    resize: 'vertical' as const,
-    outline: 'none',
-    fontFamily: 'inherit',
-    width: '100%',
-    boxSizing: 'border-box' as const,
-  },
-  conversationView: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    maxHeight: '400px',
-    overflowY: 'auto' as const,
-    padding: '4px 0',
-  },
-  segmentRow: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    padding: '10px 14px',
-    background: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: '12px',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
-  },
-  speakerHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  speakerBadge: {
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    padding: '2px 10px',
-    borderRadius: '8px',
-    letterSpacing: '0.03em',
-    textTransform: 'uppercase' as const,
-  },
-  speakerDoctor: {
-    background: 'rgba(99, 102, 241, 0.2)',
-    color: 'rgba(165, 180, 252, 0.95)',
-    border: '1px solid rgba(99, 102, 241, 0.3)',
-  },
-  speakerPatient: {
-    background: 'rgba(16, 185, 129, 0.15)',
-    color: 'rgba(110, 231, 183, 0.95)',
-    border: '1px solid rgba(16, 185, 129, 0.25)',
-  },
-  segmentTextarea: {
-    background: 'rgba(255, 255, 255, 0.04)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: '8px',
-    padding: '8px 10px',
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '0.92rem',
-    lineHeight: '1.5',
-    resize: 'vertical' as const,
-    outline: 'none',
-    fontFamily: 'inherit',
-    width: '100%',
-    boxSizing: 'border-box' as const,
-  },
-  segmentTranslationTextarea: {
-    background: 'rgba(99, 102, 241, 0.06)',
-    border: '1px solid rgba(99, 102, 241, 0.12)',
-    borderRadius: '8px',
-    padding: '8px 10px',
-    color: 'rgba(165, 180, 252, 0.85)',
-    fontSize: '0.85rem',
-    lineHeight: '1.5',
-    fontStyle: 'italic' as const,
-    resize: 'vertical' as const,
-    outline: 'none',
-    fontFamily: 'inherit',
-    width: '100%',
-    boxSizing: 'border-box' as const,
-  },
-  clearButton: {
-    alignSelf: 'flex-end',
-    background: 'transparent',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: '10px',
-    padding: '6px 16px',
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: '0.8rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  errorBox: {
-    background: 'rgba(239, 68, 68, 0.12)',
-    border: '1px solid rgba(239, 68, 68, 0.2)',
-    borderRadius: '12px',
-    padding: '12px 16px',
-    color: 'rgba(252, 165, 165, 0.95)',
-    fontSize: '0.85rem',
-    backdropFilter: 'blur(8px)',
-  },
-  translationSection: {
-    background: 'rgba(99, 102, 241, 0.08)',
-    border: '1px solid rgba(99, 102, 241, 0.15)',
-    borderRadius: '14px',
-    padding: '14px 16px',
-  },
-  translationHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    marginBottom: '8px',
-  },
-  translationLabel: {
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    color: 'rgba(165, 180, 252, 0.8)',
-    letterSpacing: '0.04em',
-    textTransform: 'uppercase' as const,
-  },
-  translatingDot: {
-    width: '6px',
-    height: '6px',
-    borderRadius: '50%',
-    background: 'rgba(165, 180, 252, 0.6)',
-    animation: 'blink 1s infinite',
-    display: 'inline-block',
-  },
-  translationText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '0.95rem',
-    lineHeight: '1.6',
-  },
-  generateButton: {
-    width: '100%',
-    padding: '14px 20px',
-    borderRadius: '14px',
-    border: 'none',
-    background:
-      'linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8))',
-    color: '#ffffff',
-    fontSize: '0.92rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)',
-    letterSpacing: '0.01em',
-  },
-  spinner: {
-    width: '18px',
-    height: '18px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTopColor: '#fff',
-    borderRadius: '50%',
-    display: 'inline-block',
-    animation: 'spin 0.6s linear infinite',
-  },
-};

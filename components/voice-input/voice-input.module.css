@@ -1,0 +1,389 @@
+/* Card */
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 640px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Mode toggle */
+.modeToggleRow {
+  display: flex;
+  justify-content: center;
+}
+
+.modeToggle {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modeButton {
+  padding: 8px 20px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.modeButton:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.modeButtonActive {
+  background: rgba(99, 102, 241, 0.25);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Header */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.languageSelect {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 6px 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+  max-width: 220px;
+}
+
+/* Mic button */
+.micButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+}
+
+.micButtonRecording {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9));
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+  animation: pulse-ring 1.5s infinite;
+}
+
+/* Status */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.listeningIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(252, 165, 165, 0.9);
+  font-weight: 500;
+}
+
+.listeningDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.8);
+  animation: blink 1s infinite;
+  display: inline-block;
+}
+
+.processingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: rgba(165, 180, 252, 0.9);
+  font-weight: 500;
+}
+
+.languageBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: rgba(165, 180, 252, 0.95);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Textarea */
+.textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Conversation view */
+.conversationView {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.segmentRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.speakerHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speakerBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 8px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.speakerDoctor {
+  background: rgba(99, 102, 241, 0.2);
+  color: rgba(165, 180, 252, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.speakerPatient {
+  background: rgba(16, 185, 129, 0.15);
+  color: rgba(110, 231, 183, 0.95);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.segmentTextarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.segmentTranslationTextarea {
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: rgba(165, 180, 252, 0.85);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  font-style: italic;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Clear button */
+.clearButton {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 6px 16px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Error */
+.errorBox {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: rgba(252, 165, 165, 0.95);
+  font-size: 0.85rem;
+  backdrop-filter: blur(8px);
+}
+
+/* Translation */
+.translationSection {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.translationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.translationLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(165, 180, 252, 0.8);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.translatingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(165, 180, 252, 0.6);
+  animation: blink 1s infinite;
+  display: inline-block;
+}
+
+.translationText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Generate button */
+.generateButton {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+  letter-spacing: 0.01em;
+}
+
+.generateButton:hover {
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Status flex row helper */
+.statusFlexRow {
+  display: flex;
+  gap: 6px;
+}
+
+/* Keyframes */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

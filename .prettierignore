@@ -1,0 +1,6 @@
+node_modules
+.next
+dist
+build
+amplify_outputs.json
+package-lock.json

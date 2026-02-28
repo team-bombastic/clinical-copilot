@@ -1,6 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { AWS_REGION_DEFAULT, AUDIO_MIME_TYPE, AUDIO_CONTENT_TYPE } from '@/constants/config';
+import {
+  ERR_NOT_AUTHENTICATED,
+  ERR_BATCH_TRANSCRIPTION_FAILED,
+  ERR_RECORDING_FAILED,
+  errLambda,
+} from '@/constants/errors';
 
 export interface ConsultationSegment {
   speaker: string;
@@ -26,9 +33,7 @@ export interface UseBatchTranscribeReturn {
   setSegments: React.Dispatch<React.SetStateAction<ConsultationSegment[]>>;
 }
 
-export function useBatchTranscribe(
-  functionName: string
-): UseBatchTranscribeReturn {
+export function useBatchTranscribe(functionName: string): UseBatchTranscribeReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -61,11 +66,10 @@ export function useBatchTranscribe(
         // Get credentials
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error('Not authenticated');
+        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
 
         const region =
-          (session.tokens?.idToken?.payload?.['custom:region'] as string) ||
-          'ap-south-1';
+          (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
 
         const lambda = new LambdaClient({
           region,
@@ -95,7 +99,7 @@ export function useBatchTranscribe(
 
         if (response.FunctionError) {
           const errorPayload = new TextDecoder().decode(response.Payload);
-          throw new Error(`Lambda error: ${errorPayload}`);
+          throw new Error(errLambda(errorPayload));
         }
 
         const result = JSON.parse(new TextDecoder().decode(response.Payload));
@@ -105,17 +109,11 @@ export function useBatchTranscribe(
         } else {
           const newTranscript = result.transcript || '';
           const newTranslation = result.translatedText || '';
-          setTranscript((prev) =>
-            prev ? prev + ' ' + newTranscript : newTranscript
-          );
-          setTranslatedText((prev) =>
-            prev ? prev + ' ' + newTranslation : newTranslation
-          );
+          setTranscript((prev) => (prev ? prev + ' ' + newTranscript : newTranscript));
+          setTranslatedText((prev) => (prev ? prev + ' ' + newTranslation : newTranslation));
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Batch transcription failed'
-        );
+        setError(err instanceof Error ? err.message : ERR_BATCH_TRANSCRIPTION_FAILED);
       } finally {
         setIsProcessing(false);
       }
@@ -152,7 +150,7 @@ export function useBatchTranscribe(
         });
 
         const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'audio/webm;codecs=opus',
+          mimeType: AUDIO_MIME_TYPE,
         });
 
         mediaRecorder.ondataavailable = (e) => {
@@ -164,7 +162,7 @@ export function useBatchTranscribe(
         mediaRecorder.onstop = () => {
           stream.getTracks().forEach((t) => t.stop());
           const audioBlob = new Blob(chunksRef.current, {
-            type: 'audio/webm',
+            type: AUDIO_CONTENT_TYPE,
           });
           processAudio(audioBlob);
         };
@@ -173,9 +171,7 @@ export function useBatchTranscribe(
         mediaRecorder.start();
         setIsRecording(true);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to start recording'
-        );
+        setError(err instanceof Error ? err.message : ERR_RECORDING_FAILED);
       }
     },
     [processAudio]

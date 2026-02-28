@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
-import {
-  TranslateClient,
-  TranslateTextCommand,
-} from '@aws-sdk/client-translate';
+import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
+import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
 
 export interface UseTranslateReturn {
   translatedText: string;
@@ -20,65 +19,59 @@ export function useTranslate(): UseTranslateReturn {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRequestRef = useRef(0);
 
-  const translateText = useCallback(
-    (text: string, sourceLang: string, targetLang: string) => {
-      if (!text.trim() || !targetLang || sourceLang === targetLang) {
-        setTranslatedText('');
-        return;
-      }
+  const translateText = useCallback((text: string, sourceLang: string, targetLang: string) => {
+    if (!text.trim() || !targetLang || sourceLang === targetLang) {
+      setTranslatedText('');
+      return;
+    }
 
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-      debounceRef.current = setTimeout(async () => {
-        const requestId = ++lastRequestRef.current;
-        setIsTranslating(true);
-        setTranslateError(null);
+    debounceRef.current = setTimeout(async () => {
+      const requestId = ++lastRequestRef.current;
+      setIsTranslating(true);
+      setTranslateError(null);
 
-        try {
-          const session = await fetchAuthSession();
-          const credentials = session.credentials;
-          if (!credentials) throw new Error('Not authenticated');
+      try {
+        const session = await fetchAuthSession();
+        const credentials = session.credentials;
+        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
 
-          const region =
-            (session.tokens?.idToken?.payload?.['custom:region'] as string) ||
-            'ap-south-1';
+        const region =
+          (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
 
-          const client = new TranslateClient({
-            region,
-            credentials: {
-              accessKeyId: credentials.accessKeyId,
-              secretAccessKey: credentials.secretAccessKey,
-              sessionToken: credentials.sessionToken,
-            },
-          });
+        const client = new TranslateClient({
+          region,
+          credentials: {
+            accessKeyId: credentials.accessKeyId,
+            secretAccessKey: credentials.secretAccessKey,
+            sessionToken: credentials.sessionToken,
+          },
+        });
 
-          const command = new TranslateTextCommand({
-            Text: text,
-            SourceLanguageCode: sourceLang,
-            TargetLanguageCode: targetLang,
-          });
+        const command = new TranslateTextCommand({
+          Text: text,
+          SourceLanguageCode: sourceLang,
+          TargetLanguageCode: targetLang,
+        });
 
-          const response = await client.send(command);
+        const response = await client.send(command);
 
-          // Only update if this is still the latest request
-          if (requestId === lastRequestRef.current) {
-            setTranslatedText(response.TranslatedText || '');
-          }
-        } catch (err) {
-          if (requestId === lastRequestRef.current) {
-            setTranslateError(
-              err instanceof Error ? err.message : 'Translation failed'
-            );
-          }
-        } finally {
-          if (requestId === lastRequestRef.current) {
-            setIsTranslating(false);
-          }
+        // Only update if this is still the latest request
+        if (requestId === lastRequestRef.current) {
+          setTranslatedText(response.TranslatedText || '');
         }
-      }, 600);
-    },
-    []
-  );
+      } catch (err) {
+        if (requestId === lastRequestRef.current) {
+          setTranslateError(err instanceof Error ? err.message : ERR_TRANSLATION_FAILED);
+        }
+      } finally {
+        if (requestId === lastRequestRef.current) {
+          setIsTranslating(false);
+        }
+      }
+    }, TRANSLATION_DEBOUNCE_MS);
+  }, []);
 
   const clearTranslation = useCallback(() => {
     setTranslatedText('');
