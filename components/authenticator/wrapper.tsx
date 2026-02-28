@@ -94,14 +94,14 @@ const theme: Theme = {
 export default function AuthenticatorWrapper({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
-      {/* <Authenticator
+      <Authenticator
         passwordless={{
           preferredAuthMethod: 'EMAIL_OTP',
           hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
         }}
-      > */}
-      {children}
-      {/* </Authenticator> */}
+      >
+        {children}
+      </Authenticator>
     </ThemeProvider>
   );
 }
