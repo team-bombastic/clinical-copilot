@@ -41,21 +41,11 @@ export const DROP_ZONE_HINT = 'or click to browse • JPEG, PNG';
 export const GENERATING_TEXT = 'Generating with AI...';
 export const GENERATE_PRESCRIPTION_TEXT = 'Generate Prescription';
 export const TAB_PREVIEW = 'Preview';
-export const TAB_LATEX = 'LaTeX Code';
-export const COPY_TEXT = 'Copy';
-export const COPIED_TEXT = 'Copied!';
 export const DOWNLOAD_PDF_TEXT = 'Download PDF';
-export const EXPORTING_TEXT = 'Exporting...';
 export const REUPLOAD_TEXT = '← Upload a different template';
-
-// ─── LaTeX Preview ───
-export const LATEX_PREVIEW_WARNING =
-  'LaTeX preview rendering encountered an issue. Showing formatted view instead.';
-export const LATEX_WARNING_ICON = '⚠';
 
 // ─── Tooltip / Title Attributes ───
 export const TOOLTIP_CLOSE = 'Close';
 export const TOOLTIP_STOP_RECORDING = 'Stop recording';
 export const TOOLTIP_START_RECORDING = 'Start recording';
-export const TOOLTIP_COPY_LATEX = 'Copy LaTeX';
 export const TOOLTIP_DOWNLOAD_PDF = 'Download PDF';

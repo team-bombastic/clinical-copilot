@@ -17,10 +17,31 @@ interface ConsultationSegment {
   translatedText: string;
 }
 
+interface PrescriptionData {
+  patientName?: string;
+  age?: string;
+  sex?: string;
+  date?: string;
+  address?: string;
+  chiefComplaints?: string[];
+  diagnosis?: string;
+  medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions?: string;
+  }>;
+  investigations?: string[];
+  instructions?: string[];
+  followUp?: string;
+}
+
 export interface UseGenerateDocumentReturn {
   uploadedFile: File | null;
-  latexCode: string;
+  pdfBase64: string;
   s3Key: string;
+  prescriptionData: PrescriptionData | null;
   isGenerating: boolean;
   error: string | null;
   setUploadedFile: (file: File | null) => void;
@@ -46,8 +67,9 @@ function getPrescriptionFunctionName(): string {
 
 export function useGenerateDocument(): UseGenerateDocumentReturn {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [latexCode, setLatexCode] = useState('');
+  const [pdfBase64, setPdfBase64] = useState('');
   const [s3Key, setS3Key] = useState('');
+  const [prescriptionData, setPrescriptionData] = useState<PrescriptionData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,8 +82,9 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
     ) => {
       setIsGenerating(true);
       setError(null);
-      setLatexCode('');
+      setPdfBase64('');
       setS3Key('');
+      setPrescriptionData(null);
 
       try {
         // Convert file to base64
@@ -124,8 +147,9 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
 
         const result = JSON.parse(new TextDecoder().decode(response.Payload));
 
-        setLatexCode(result.latexCode || '');
+        setPdfBase64(result.pdfBase64 || '');
         setS3Key(result.s3Key || '');
+        setPrescriptionData(result.prescriptionData || null);
       } catch (err) {
         setError(err instanceof Error ? err.message : ERR_DOC_GENERATION_FAILED);
       } finally {
@@ -137,15 +161,17 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
 
   const clearState = useCallback(() => {
     setUploadedFile(null);
-    setLatexCode('');
+    setPdfBase64('');
     setS3Key('');
+    setPrescriptionData(null);
     setError(null);
   }, []);
 
   return {
     uploadedFile,
-    latexCode,
+    pdfBase64,
     s3Key,
+    prescriptionData,
     isGenerating,
     error,
     setUploadedFile,

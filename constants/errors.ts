@@ -11,7 +11,8 @@ export const ERR_TRANSLATION_FAILED = 'Translation failed';
 export const ERR_DOC_GENERATION_FAILED = 'Document generation failed';
 export const ERR_FUNCTION_NOT_CONFIGURED =
   'Prescription function not configured. Deploy the Amplify backend first.';
-export const ERR_NO_RENDERED_CONTENT = 'No rendered content found';
+export const ERR_TEXTRACT_FAILED = 'Failed to extract fields from template image';
+export const ERR_PDF_GENERATION_FAILED = 'Failed to generate PDF';
 
 // ─── Lambda ───
 export const errLambda = (payload: string) => `Lambda error: ${payload}`;

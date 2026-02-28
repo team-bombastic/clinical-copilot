@@ -1,16 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { useGenerateDocument } from './use-generate-document';
-import LatexPreview from './latex-preview';
-import {
-  PDF_FILENAME_PREFIX,
-  PDF_IMAGE_QUALITY,
-  PDF_SCALE,
-  PDF_FORMAT,
-  PDF_ORIENTATION,
-} from '@/constants/config';
-import { ERR_NO_RENDERED_CONTENT } from '@/constants/errors';
+import PdfPreview from './pdf-preview';
+import { PDF_FILENAME_PREFIX } from '@/constants/config';
 import {
   DOC_GEN_TITLE,
   DOC_GEN_SUBTITLE,
@@ -18,15 +11,9 @@ import {
   DROP_ZONE_HINT,
   GENERATING_TEXT,
   GENERATE_PRESCRIPTION_TEXT,
-  TAB_PREVIEW,
-  TAB_LATEX,
-  COPY_TEXT,
-  COPIED_TEXT,
   DOWNLOAD_PDF_TEXT,
-  EXPORTING_TEXT,
   REUPLOAD_TEXT,
   TOOLTIP_CLOSE,
-  TOOLTIP_COPY_LATEX,
   TOOLTIP_DOWNLOAD_PDF,
 } from '@/constants/ui-strings';
 import { ACCEPTED_TEMPLATE_TYPES } from '@/constants/config';
@@ -45,8 +32,6 @@ interface DocumentGeneratorProps {
   onClose: () => void;
 }
 
-type ActiveTab = 'preview' | 'latex';
-
 export default function DocumentGenerator({
   transcription,
   segments,
@@ -55,7 +40,7 @@ export default function DocumentGenerator({
 }: DocumentGeneratorProps) {
   const {
     uploadedFile,
-    latexCode,
+    pdfBase64,
     isGenerating,
     error,
     setUploadedFile,
@@ -63,10 +48,6 @@ export default function DocumentGenerator({
     clearState,
   } = useGenerateDocument();
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('preview');
-  const [copied, setCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = useCallback(
@@ -99,56 +80,25 @@ export default function DocumentGenerator({
     generateDocument(uploadedFile, transcription, segments, mode);
   }, [uploadedFile, transcription, segments, mode, generateDocument]);
 
-  const handleCopyLatex = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(latexCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = latexCode;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const handleDownloadPdf = useCallback(() => {
+    if (!pdfBase64) return;
+
+    const byteChars = atob(pdfBase64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteArray[i] = byteChars.charCodeAt(i);
     }
-  }, [latexCode]);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (!previewRef.current) return;
-    setIsDownloading(true);
-
-    try {
-      const html2pdf = (await import('html2pdf.js')).default;
-
-      const wrapper = previewRef.current.querySelector('div');
-      if (!wrapper) throw new Error(ERR_NO_RENDERED_CONTENT);
-
-      const opt = {
-        margin: 0,
-        filename: `${PDF_FILENAME_PREFIX}-${Date.now()}.pdf`,
-        image: { type: 'jpeg' as const, quality: PDF_IMAGE_QUALITY },
-        html2canvas: {
-          scale: PDF_SCALE,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-        },
-        jsPDF: {
-          unit: 'pt',
-          format: PDF_FORMAT,
-          orientation: PDF_ORIENTATION,
-        },
-      };
-
-      await html2pdf().set(opt).from(wrapper).save();
-    } catch (err) {
-      console.error('PDF download failed:', err);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, []);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${PDF_FILENAME_PREFIX}-${Date.now()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [pdfBase64]);
 
   const handleClose = useCallback(() => {
     clearState();
@@ -182,7 +132,7 @@ export default function DocumentGenerator({
         </div>
 
         {/* Upload section */}
-        {!latexCode && (
+        {!pdfBase64 && (
           <div className={styles.uploadSection}>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -276,109 +226,40 @@ export default function DocumentGenerator({
         {error && <div className={styles.errorBox}>{error}</div>}
 
         {/* Results section */}
-        {latexCode && (
+        {pdfBase64 && (
           <div className={styles.resultsSection}>
-            {/* Tabs */}
-            <div className={styles.tabRow}>
-              <div className={styles.tabs}>
-                <button
-                  onClick={() => setActiveTab('preview')}
-                  className={`${styles.tab} ${activeTab === 'preview' ? styles.tabActive : ''}`}
-                >
-                  {TAB_PREVIEW}
-                </button>
-                <button
-                  onClick={() => setActiveTab('latex')}
-                  className={`${styles.tab} ${activeTab === 'latex' ? styles.tabActive : ''}`}
-                >
-                  {TAB_LATEX}
-                </button>
-              </div>
-              <div className={styles.actionButtons}>
-                <button
-                  onClick={handleCopyLatex}
-                  className={styles.actionButton}
-                  title={TOOLTIP_COPY_LATEX}
-                >
-                  {copied ? (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="rgba(110, 231, 183, 0.9)"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                  )}
-                  {copied ? COPIED_TEXT : COPY_TEXT}
-                </button>
-                <button
-                  onClick={handleDownloadPdf}
-                  disabled={isDownloading}
-                  className={styles.downloadButton}
-                  title={TOOLTIP_DOWNLOAD_PDF}
-                >
-                  {isDownloading ? (
-                    <span className={styles.buttonContent}>
-                      <span className={styles.spinnerSmall} />
-                      {EXPORTING_TEXT}
-                    </span>
-                  ) : (
-                    <span className={styles.buttonContent}>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                      </svg>
-                      {DOWNLOAD_PDF_TEXT}
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
+            {/* PDF Preview */}
+            <PdfPreview pdfBase64={pdfBase64} />
 
-            {/* Tab content */}
-            <div className={styles.tabContent}>
-              {activeTab === 'preview' ? (
-                <LatexPreview latexCode={latexCode} previewRef={previewRef} />
-              ) : (
-                <div className={styles.codeContainer}>
-                  <pre className={styles.codeBlock}>{latexCode}</pre>
-                </div>
-              )}
+            {/* Actions */}
+            <div className={styles.resultActions}>
+              <button onClick={() => clearState()} className={styles.regenerateButton}>
+                {REUPLOAD_TEXT}
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                className={styles.downloadButton}
+                title={TOOLTIP_DOWNLOAD_PDF}
+              >
+                <span className={styles.buttonContent}>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  {DOWNLOAD_PDF_TEXT}
+                </span>
+              </button>
             </div>
-
-            {/* Re-generate button */}
-            <button onClick={() => clearState()} className={styles.regenerateButton}>
-              {REUPLOAD_TEXT}
-            </button>
           </div>
         )}
       </div>

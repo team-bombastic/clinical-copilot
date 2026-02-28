@@ -198,67 +198,10 @@
   animation: fadeIn 0.3s ease;
 }
 
-.tabRow {
+.resultActions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.tabs {
-  display: inline-flex;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.tab {
-  padding: 7px 18px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab:hover {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.tabActive {
-  background: rgba(99, 102, 241, 0.25);
-  color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
-}
-
-.actionButtons {
-  display: flex;
-  gap: 8px;
-}
-
-.actionButton {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.actionButton:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .downloadButton {
@@ -282,32 +225,7 @@
   transform: translateY(-1px);
 }
 
-/* Tab content */
-.tabContent {
-  min-height: 300px;
-}
-
-.codeContainer {
-  max-height: 500px;
-  overflow-y: auto;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.codeBlock {
-  padding: 16px 20px;
-  color: rgba(165, 180, 252, 0.9);
-  font-size: 0.82rem;
-  line-height: 1.6;
-  font-family: var(--font-geist-mono), monospace;
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
 .regenerateButton {
-  align-self: flex-start;
   background: transparent;
   border: none;
   color: rgba(165, 180, 252, 0.7);

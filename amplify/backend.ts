@@ -99,6 +99,14 @@ prescriptionFn.addToRolePolicy(
   })
 );
 
+// Textract AnalyzeDocument permission for prescription Lambda
+prescriptionFn.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['textract:AnalyzeDocument'],
+    resources: ['*'],
+  })
+);
+
 // Export the Lambda function names so the client can reference them
 backend.addOutput({
   custom: {

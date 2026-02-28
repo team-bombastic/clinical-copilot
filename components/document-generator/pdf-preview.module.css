@@ -1,0 +1,210 @@
+/* ─── Viewer Shell ─── */
+.viewer {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+/* ─── Toolbar ─── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  min-height: 40px;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.toolbarIcon {
+  color: rgba(165, 180, 252, 0.5);
+  flex-shrink: 0;
+}
+
+.toolbarLabel {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageCount {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(165, 180, 252, 0.45);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Center Controls ─── */
+.toolbarCenter {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.controlBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.controlBtn:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.controlBtn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.zoomBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: rgba(165, 180, 252, 0.65);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 42px;
+  letter-spacing: 0.02em;
+}
+
+.zoomBadge:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(165, 180, 252, 0.95);
+}
+
+.separator {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 3px;
+}
+
+/* ─── Canvas Viewport ─── */
+.viewport {
+  position: relative;
+  height: 62vh;
+  overflow: auto;
+  background: rgba(8, 10, 18, 0.7);
+}
+
+/* Custom scrollbar */
+.viewport::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.viewport::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Canvas ─── */
+.canvasWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  min-height: 100%;
+}
+
+.canvas {
+  display: block;
+  border-radius: 3px;
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  background: #fff;
+  transition: width 0.15s ease, height 0.15s ease;
+}
+
+/* ─── Loading State ─── */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(8, 10, 18, 0.85);
+  z-index: 2;
+}
+
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-top-color: rgba(165, 180, 252, 0.7);
+  border-radius: 50%;
+  animation: spinPreview 0.7s linear infinite;
+}
+
+.loadingText {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+@keyframes spinPreview {
+  to {
+    transform: rotate(360deg);
+  }
+}
