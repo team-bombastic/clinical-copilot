@@ -49,7 +49,7 @@ interface BatchTranscribeEvent {
   languageCode: string;
   mediaFormat: string;
   mode?: 'consultation' | 'dictation';
-  languageOptions?: string;
+  languageOptions?: string | null;
 }
 
 interface ConsultationSegment {
@@ -156,26 +156,48 @@ export const handler = async (event: BatchTranscribeEvent): Promise<BatchTranscr
 
     // 2. Start transcription job
     if (mode === 'consultation') {
-      // Consultation: multi-language detection + speaker diarization
-      await transcribe.send(
-        new StartTranscriptionJobCommand({
-          TranscriptionJobName: jobName,
-          IdentifyMultipleLanguages: true,
-          LanguageOptions: (languageOptions || `en-IN,${languageCode}`)
-            .split(',')
-            .map((c) => c.trim()) as LanguageCode[],
-          MediaFormat: mediaFormat as MediaFormat,
-          Media: {
-            MediaFileUri: `s3://${BUCKET}/${audioKey}`,
-          },
-          OutputBucketName: BUCKET,
-          OutputKey: `${outputKey}.json`,
-          Settings: {
-            ShowSpeakerLabels: true,
-            MaxSpeakerLabels: MAX_SPEAKERS,
-          },
-        })
-      );
+      // Consultation: speaker diarization + language detection
+      if (languageOptions) {
+        // Multi-language identification supported
+        await transcribe.send(
+          new StartTranscriptionJobCommand({
+            TranscriptionJobName: jobName,
+            IdentifyMultipleLanguages: true,
+            LanguageOptions: languageOptions
+              .split(',')
+              .map((c) => c.trim()) as LanguageCode[],
+            MediaFormat: mediaFormat as MediaFormat,
+            Media: {
+              MediaFileUri: `s3://${BUCKET}/${audioKey}`,
+            },
+            OutputBucketName: BUCKET,
+            OutputKey: `${outputKey}.json`,
+            Settings: {
+              ShowSpeakerLabels: true,
+              MaxSpeakerLabels: MAX_SPEAKERS,
+            },
+          })
+        );
+      } else {
+        // Language doesn't support multi-language identification;
+        // fall back to single language with speaker diarization
+        await transcribe.send(
+          new StartTranscriptionJobCommand({
+            TranscriptionJobName: jobName,
+            LanguageCode: languageCode as LanguageCode,
+            MediaFormat: mediaFormat as MediaFormat,
+            Media: {
+              MediaFileUri: `s3://${BUCKET}/${audioKey}`,
+            },
+            OutputBucketName: BUCKET,
+            OutputKey: `${outputKey}.json`,
+            Settings: {
+              ShowSpeakerLabels: true,
+              MaxSpeakerLabels: MAX_SPEAKERS,
+            },
+          })
+        );
+      }
     } else {
       // Dictation: fixed language, no speaker labels
       await transcribe.send(

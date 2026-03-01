@@ -25,7 +25,7 @@ export interface UseBatchTranscribeReturn {
   startRecording: (
     languageCode: string,
     mode?: 'consultation' | 'dictation',
-    languageOptions?: string
+    languageOptions?: string | null
   ) => Promise<void>;
   stopRecording: () => void;
   clearTranscript: () => void;
@@ -45,7 +45,7 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
   const chunksRef = useRef<Blob[]>([]);
   const languageCodeRef = useRef<string>('');
   const modeRef = useRef<'consultation' | 'dictation'>('dictation');
-  const languageOptionsRef = useRef<string | undefined>(undefined);
+  const languageOptionsRef = useRef<string | null | undefined>(undefined);
 
   const processAudio = useCallback(
     async (audioBlob: Blob) => {
@@ -132,7 +132,7 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
     async (
       languageCode: string,
       mode: 'consultation' | 'dictation' = 'dictation',
-      languageOptions?: string
+      languageOptions?: string | null
     ) => {
       setError(null);
       languageCodeRef.current = languageCode;

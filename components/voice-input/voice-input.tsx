@@ -20,6 +20,8 @@ import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/error
 import {
   MODE_CONSULTATION,
   MODE_DICTATION,
+  MODE_DESC_CONSULTATION,
+  MODE_DESC_DICTATION,
   TITLE_CONSULTATION,
   TITLE_DICTATION,
   OPTGROUP_REALTIME,
@@ -264,6 +266,13 @@ export default function VoiceInput() {
     [batch]
   );
 
+  const deleteSegment = useCallback(
+    (idx: number) => {
+      batch.setSegments((prev) => prev.filter((_, i) => i !== idx));
+    },
+    [batch]
+  );
+
   const hasConsultationResults = isConsultation && batch.segments.length > 0;
   const hasAnyContent = currentTranscript || batch.translatedText || hasConsultationResults;
   const isRecordingActive = streaming.isRecording || batch.isRecording;
@@ -288,6 +297,9 @@ export default function VoiceInput() {
             {MODE_DICTATION}
           </button>
         </div>
+        <p className={styles.modeDescription}>
+          {isConsultation ? MODE_DESC_CONSULTATION : MODE_DESC_DICTATION}
+        </p>
       </div>
 
       {/* Header: language selector + mic button */}
@@ -431,6 +443,17 @@ export default function VoiceInput() {
                 >
                   {getSpeakerLabel(seg.speaker)}
                 </span>
+                <button
+                  onClick={() => deleteSegment(idx)}
+                  className={styles.deleteSegmentButton}
+                  title="Delete segment"
+                  aria-label="Delete segment"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
               </div>
               <textarea
                 value={seg.text}

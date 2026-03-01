@@ -6,6 +6,10 @@ export const SIGN_OUT_LABEL = 'Sign out';
 // ─── Voice Input ───
 export const MODE_CONSULTATION = 'Consultation';
 export const MODE_DICTATION = 'Dictation';
+export const MODE_DESC_CONSULTATION =
+	'Record a doctor-patient conversation with speaker separation and translation.';
+export const MODE_DESC_DICTATION =
+	'Dictate or type clinical notes directly in your preferred language.';
 export const TITLE_CONSULTATION = 'Consultation Recording';
 export const TITLE_DICTATION = 'Clinical Notes';
 export const OPTGROUP_REALTIME = 'Real-time';
@@ -24,10 +28,10 @@ export const BADGE_DETECTED_PREFIX = 'Detected:';
 
 // ─── Voice Input Placeholders ───
 export const placeholderConsultation = (lang: string) =>
-  `Tap the mic to record a consultation in ${lang}...`;
+	`Tap the mic to record a consultation in ${lang}...`;
 export const placeholderStreaming = 'Tap the mic and speak — language is detected automatically...';
 export const placeholderBatch = (lang: string) =>
-  `Tap the mic, speak in ${lang}, then stop to transcribe...`;
+	`Tap the mic, speak in ${lang} (or type here in English), then stop to transcribe...`;
 export const recordingConsultation = (lang: string) => `Recording consultation (${lang})...`;
 export const recordingBatch = (lang: string) => `Recording (${lang})...`;
 export const processingBatch = (lang: string) => `Processing ${lang} audio...`;
@@ -35,7 +39,7 @@ export const processingBatch = (lang: string) => `Processing ${lang} audio...`;
 // ─── Document Generator ───
 export const DOC_GEN_TITLE = 'Generate Prescription';
 export const DOC_GEN_SUBTITLE =
-  'Upload your hospital template and generate a formatted prescription';
+	'Upload your hospital template and generate a formatted prescription';
 export const DROP_ZONE_TEXT = 'Drop your hospital prescription template here';
 export const DROP_ZONE_HINT = 'or click to browse • JPEG, PNG';
 export const GENERATING_TEXT = 'Generating with AI...';
