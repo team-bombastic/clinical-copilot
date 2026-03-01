@@ -25,11 +25,32 @@ interface ConsultationSegment {
   translatedText: string;
 }
 
+interface PrescriptionData {
+  patientName?: string;
+  age?: string;
+  sex?: string;
+  date?: string;
+  address?: string;
+  chiefComplaints?: string[];
+  diagnosis?: string;
+  medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions?: string;
+  }>;
+  investigations?: string[];
+  instructions?: string[];
+  followUp?: string;
+}
+
 interface DocumentGeneratorProps {
   transcription: string;
   segments: ConsultationSegment[];
   mode: 'dictation' | 'consultation';
   onClose: () => void;
+  prescriptionData?: PrescriptionData;
 }
 
 export default function DocumentGenerator({
@@ -37,6 +58,7 @@ export default function DocumentGenerator({
   segments,
   mode,
   onClose,
+  prescriptionData: preProcessedData,
 }: DocumentGeneratorProps) {
   const {
     uploadedFile,
@@ -77,8 +99,8 @@ export default function DocumentGenerator({
 
   const handleGenerate = useCallback(() => {
     if (!uploadedFile) return;
-    generateDocument(uploadedFile, transcription, segments, mode);
-  }, [uploadedFile, transcription, segments, mode, generateDocument]);
+    generateDocument(uploadedFile, transcription, segments, mode, preProcessedData);
+  }, [uploadedFile, transcription, segments, mode, generateDocument, preProcessedData]);
 
   const handleDownloadPdf = useCallback(() => {
     if (!pdfBase64) return;

@@ -39,7 +39,7 @@ interface PrescriptionData {
   }>;
   investigations?: string[];
   instructions?: string[];
-  followUp?: string;
+  followUp?: string | string[];
 }
 
 interface ConsultationSegment {
@@ -55,6 +55,7 @@ interface GeneratePrescriptionEvent {
   consultationSegments?: ConsultationSegment[];
   mode: 'dictation' | 'consultation';
   userId?: string;
+  preProcessedData?: PrescriptionData;
 }
 
 interface GeneratePrescriptionResult {
@@ -100,31 +101,38 @@ const SYSTEM_PROMPT = `You are a medical transcript parser. Given a clinical tra
   "patientName": "string or omit",
   "age": "string or omit",
   "sex": "string or omit",
-  "date": "string or omit",
+  "date": "string — use format like '28 February 2026'",
   "address": "string or omit",
   "chiefComplaints": ["string array or omit"],
   "diagnosis": "string or omit",
   "medications": [
     {
-      "name": "string",
-      "dosage": "string",
-      "frequency": "string",
-      "duration": "string",
-      "instructions": "string or omit"
+      "name": "string — include formulation prefix: Tab., Cap., Syp., Inj., etc. followed by drug name and strength, e.g. 'Tab. Paracetamol 650 mg'",
+      "dosage": "string — e.g. '1 tablet three times a day'",
+      "frequency": "string — e.g. 'three times a day'",
+      "duration": "string — e.g. 'for 3 days'",
+      "instructions": "string or omit — e.g. 'after food'"
     }
   ],
-  "investigations": ["string array or omit"],
-  "instructions": ["string array or omit"],
-  "followUp": "string or omit"
+  "investigations": ["each investigation as a separate string"],
+  "instructions": ["each instruction/advice as a separate string"],
+  "followUp": ["each follow-up point as a separate string"]
 }
 
 Rules:
 1. Return ONLY valid JSON. No markdown fences, no explanations, no extra text.
 2. Extract and infer information intelligently from the clinical conversation.
-3. For medications, parse dosage, frequency, and duration from context.
-4. If a field cannot be determined from the transcript, omit it entirely.
-5. Use today's date if the date is not mentioned.
-6. Infer diagnosis from the clinical discussion if not explicitly stated.`;
+3. For medications:
+   - Always include formulation prefix (Tab., Cap., Syp., Inj., Drops, Cream, Oint., etc.)
+   - Include drug name with strength in the "name" field (e.g. "Tab. Paracetamol 650 mg")
+   - Write dosage as natural text (e.g. "1 tablet three times a day")
+   - Write duration as natural text (e.g. "for 3 days", "for 5 days")
+4. For date, use human-readable format like "28 February 2026". Use today's date if not mentioned.
+5. For investigations, each test should be a separate array item (e.g. "Complete Blood Count (CBC)")
+6. For instructions/advice, each point should be a separate array item (e.g. "Plentiful oral fluid intake.")
+7. For followUp, return an array of strings with each follow-up point separate (e.g. "If fever persists for more than 3 days.")
+8. If a field cannot be determined from the transcript, omit it entirely.
+9. Infer diagnosis from the clinical discussion if not explicitly stated.`;
 
 // ─── Helpers ───
 
@@ -180,6 +188,30 @@ function fitFontSize(boxHeightPts: number, maxSize: number = 16, minSize: number
   // which is roughly 70% of the em square, so divide by 0.7 to fill the box
   const fitted = Math.floor(available * 0.72);
   return Math.max(minSize, Math.min(fitted, maxSize));
+}
+
+/**
+ * Compute font size that fits text within a given width.
+ * Shrinks from maxSize down to minSize until the text fits on one line.
+ * Returns the chosen size and how many wrapped lines the text would occupy.
+ */
+function fitFontSizeToWidth(
+  text: string,
+  font: PDFFont,
+  maxWidthPts: number,
+  maxSize: number = 12,
+  minSize: number = 7
+): { fontSize: number; lineCount: number } {
+  for (let size = maxSize; size >= minSize; size -= 0.5) {
+    const textWidth = font.widthOfTextAtSize(text, size);
+    if (textWidth <= maxWidthPts) {
+      return { fontSize: size, lineCount: 1 };
+    }
+  }
+  // At minSize the text still doesn't fit — calculate wrapped line count
+  const textWidth = font.widthOfTextAtSize(text, minSize);
+  const lineCount = Math.ceil(textWidth / maxWidthPts);
+  return { fontSize: minSize, lineCount };
 }
 
 /**
@@ -485,114 +517,142 @@ async function generatePdf(
     }
   }
 
-  // ── Fill medication table ──
+  // ── Determine the Rx body area ──
+  // The body starts below the lowest form field / "Rx" marker and ends
+  // before the footer region (signature line, contact bar, etc.).
+
+  const RX_BODY_LEFT = 0.06;
+  const RX_BODY_RIGHT_MARGIN = 0.06;
+  const RX_BODY_BOTTOM_LIMIT = 0.80; // stop before signature / footer
+  const BODY_FONT_SIZE = 10;
+  const BODY_FONT_MIN = 7;
+  const HEADER_FONT_SIZE = 11;
+  const LINE_HEIGHT_RATIO = 0.020; // ~2% of image height per text line
+  const SECTION_GAP = 0.014; // gap between sections
+
+  let contentCursor = 0;
+
+  // Find the lowest form field value box
+  for (const f of fields) {
+    const bottom = f.valueBBox.top + f.valueBBox.height;
+    if (bottom > contentCursor) contentCursor = bottom;
+  }
+
+  // Ensure content starts below form fields area
+  contentCursor = Math.max(contentCursor, 0.28);
+  contentCursor += 0.015;
+
+  const bodyWidth = A4_WIDTH * (1 - RX_BODY_LEFT - RX_BODY_RIGHT_MARGIN);
+
+  // Helper: draw a single line of text and advance cursor
+  const drawLine = (
+    text: string,
+    useFont: PDFFont,
+    maxSize: number = BODY_FONT_SIZE,
+    minSize: number = BODY_FONT_MIN,
+    leftOffset: number = 0
+  ) => {
+    if (!text || contentCursor > RX_BODY_BOTTOM_LIMIT) return;
+    const lineWidth = bodyWidth - leftOffset * placement.drawWidth;
+    const { fontSize, lineCount } = fitFontSizeToWidth(text, useFont, lineWidth, maxSize, minSize);
+    const { x, y } = imageToPage(RX_BODY_LEFT + leftOffset, contentCursor, placement);
+    page.drawText(text, {
+      x,
+      y,
+      size: fontSize,
+      font: useFont,
+      color: rgb(0, 0, 0),
+      maxWidth: lineWidth,
+    });
+    contentCursor += LINE_HEIGHT_RATIO * lineCount;
+  };
+
+  // Helper: draw a section with a bold header then bulleted items below
+  const drawBulletSection = (header: string, items: string[]) => {
+    if (!items.length || contentCursor > RX_BODY_BOTTOM_LIMIT) return;
+    drawLine(`${header}:`, fontBold, HEADER_FONT_SIZE, BODY_FONT_MIN);
+    for (const item of items) {
+      if (contentCursor > RX_BODY_BOTTOM_LIMIT) break;
+      drawLine(`- ${item}`, font);
+    }
+    contentCursor += SECTION_GAP;
+  };
+
+  // ── Medications ──
   if (data.medications?.length) {
     const medTable = findMedicationTable(tables);
 
     if (medTable) {
+      // Fill Textract-detected medication table
       const headerCells = medTable.filter((c) => c.rowIndex === 1);
       const colMap = mapTableColumns(headerCells);
-
-      // Find the max row in the table
       const maxRow = Math.max(...medTable.map((c) => c.rowIndex));
-      // Data rows start at row 2 (row 1 is header)
       const dataStartRow = 2;
+      const lastFilledRow = Math.min(dataStartRow + data.medications.length - 1, maxRow);
 
       for (let i = 0; i < data.medications.length; i++) {
         const med = data.medications[i];
         const targetRow = dataStartRow + i;
-        if (targetRow > maxRow) break; // Don't write beyond table bounds
+        if (targetRow > maxRow) break;
 
-        // Find cells for this row
         const rowCells = medTable.filter((c) => c.rowIndex === targetRow);
         const cellByCol = new Map<number, TableCell>();
         for (const cell of rowCells) cellByCol.set(cell.columnIndex, cell);
 
-        // Serial number
         const serialCell = cellByCol.get(colMap.serialCol);
-        if (serialCell) {
-          drawTextInBox(page, `${i + 1}.`, serialCell.bbox, placement, font);
-        }
+        if (serialCell) drawTextInBox(page, `${i + 1}.`, serialCell.bbox, placement, font);
 
-        // Drug name + strength
         const nameCell = cellByCol.get(colMap.nameCol);
-        if (nameCell) {
-          drawTextInBox(page, `${med.name} ${med.dosage}`, nameCell.bbox, placement, font);
-        }
+        if (nameCell) drawTextInBox(page, `${med.name} ${med.dosage}`, nameCell.bbox, placement, font);
 
-        // Dosage & Frequency
         const dosageCell = cellByCol.get(colMap.dosageCol);
-        if (dosageCell) {
-          drawTextInBox(page, med.frequency, dosageCell.bbox, placement, font);
-        }
+        if (dosageCell) drawTextInBox(page, med.frequency, dosageCell.bbox, placement, font);
 
-        // Duration
         const durationCell = cellByCol.get(colMap.durationCol);
-        if (durationCell) {
-          drawTextInBox(page, med.duration, durationCell.bbox, placement, font);
-        }
+        if (durationCell) drawTextInBox(page, med.duration, durationCell.bbox, placement, font);
 
-        // Instructions/Remarks
         const instrCell = cellByCol.get(colMap.instructionsCol);
-        if (instrCell && med.instructions) {
-          drawTextInBox(page, med.instructions, instrCell.bbox, placement, font);
-        }
+        if (instrCell && med.instructions) drawTextInBox(page, med.instructions, instrCell.bbox, placement, font);
       }
+
+      // Update cursor to bottom of the last filled table row
+      const lastRowCells = medTable.filter((c) => c.rowIndex === lastFilledRow);
+      for (const cell of lastRowCells) {
+        const bottom = cell.bbox.top + cell.bbox.height;
+        if (bottom > contentCursor) contentCursor = bottom;
+      }
+      contentCursor += SECTION_GAP;
     } else {
-      // Fallback: no table detected, draw as list below the form fields
-      // Find the lowest form field to start below it
-      let lowestTop = 0.5;
-      for (const f of fields) {
-        const bottom = f.valueBBox.top + f.valueBBox.height;
-        if (bottom > lowestTop) lowestTop = bottom;
-      }
-
-      const startImgTop = lowestTop + 0.02;
-      const lineHeightRatio = 0.025; // ~2.5% of image height per line
-
+      // No table — draw medications as numbered list in the Rx body
+      drawLine('Medications:', fontBold, HEADER_FONT_SIZE, BODY_FONT_MIN);
       for (let i = 0; i < data.medications.length; i++) {
+        if (contentCursor > RX_BODY_BOTTOM_LIMIT) break;
         const med = data.medications[i];
-        const line = `${i + 1}. ${med.name} ${med.dosage} - ${med.frequency} x ${med.duration}${med.instructions ? ` (${med.instructions})` : ''}`;
-        const imgTop = startImgTop + i * lineHeightRatio;
-        const { x, y } = imageToPage(0.08, imgTop, placement);
-        page.drawText(line, {
-          x,
-          y,
-          size: 12,
-          font,
-          color: rgb(0, 0, 0),
-          maxWidth: A4_WIDTH * 0.84,
-        });
+        const line = `${i + 1}. ${med.name} - ${med.dosage} ${med.duration}.`;
+        drawLine(line, font);
       }
+      contentCursor += SECTION_GAP;
     }
   }
 
-  // ── Draw remaining unmatched fields at fallback positions ──
-  let fallbackImgTop = 0.88;
-  const fallbackLineHeight = 0.02;
-
-  const drawFallback = (label: string, value: string) => {
-    if (!value || fallbackImgTop > 0.96) return;
-    const { x, y } = imageToPage(0.08, fallbackImgTop, placement);
-    page.drawText(`${label}: ${value}`, {
-      x,
-      y,
-      size: 11,
-      font: fontBold,
-      color: rgb(0, 0, 0),
-      maxWidth: A4_WIDTH * 0.84,
-    });
-    fallbackImgTop += fallbackLineHeight;
-  };
-
-  if (!usedFields.has('investigations') && data.investigations?.length) {
-    drawFallback('Investigations', data.investigations.join(', '));
-  }
+  // ── Advice / Instructions ──
   if (!usedFields.has('instructions') && data.instructions?.length) {
-    drawFallback('Instructions', data.instructions.join('; '));
+    drawBulletSection('Advice', data.instructions);
   }
-  if (!usedFields.has('followUp') && data.followUp) {
-    drawFallback('Follow-up', data.followUp);
+
+  // ── Investigations ──
+  if (!usedFields.has('investigations') && data.investigations?.length) {
+    drawBulletSection('Investigations', data.investigations);
+  }
+
+  // ── Review / Follow-up ──
+  const followUpItems = Array.isArray(data.followUp)
+    ? data.followUp
+    : data.followUp
+      ? [data.followUp]
+      : [];
+  if (!usedFields.has('followUp') && followUpItems.length) {
+    drawBulletSection('Review', followUpItems);
   }
 
   return await pdfDoc.save();
@@ -609,8 +669,8 @@ export const handler = async (
   // Step A: Extract field positions and table structure with Textract
   const textractResult = await extractFieldsAndTables(imageBytes);
 
-  // Step B: Extract structured data with Bedrock
-  const prescriptionData = await extractPrescriptionData(transcription);
+  // Step B: Extract structured data with Bedrock (skip if pre-processed data provided)
+  const prescriptionData = event.preProcessedData || await extractPrescriptionData(transcription);
 
   // Step C: Generate PDF with pdf-lib
   const pdfBytes = await generatePdf(imageBytes, event.templateMediaType, textractResult, prescriptionData);

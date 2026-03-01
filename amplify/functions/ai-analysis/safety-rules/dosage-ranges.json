@@ -1,0 +1,418 @@
+{
+  "paracetamol": {
+    "min": 325,
+    "max": 1000,
+    "unit": "mg",
+    "maxDailyDose": 4000,
+    "frequency": "every 4-6 hours",
+    "notes": "Max 4g/day. Reduce in hepatic impairment."
+  },
+  "ibuprofen": {
+    "min": 200,
+    "max": 800,
+    "unit": "mg",
+    "maxDailyDose": 2400,
+    "frequency": "every 6-8 hours",
+    "notes": "Take with food. Avoid in renal impairment."
+  },
+  "diclofenac": {
+    "min": 25,
+    "max": 75,
+    "unit": "mg",
+    "maxDailyDose": 150,
+    "frequency": "every 8-12 hours",
+    "notes": "Take with food. GI and cardiovascular risk."
+  },
+  "aceclofenac": {
+    "min": 100,
+    "max": 100,
+    "unit": "mg",
+    "maxDailyDose": 200,
+    "frequency": "every 12 hours",
+    "notes": "Take with food."
+  },
+  "azithromycin": {
+    "min": 250,
+    "max": 500,
+    "unit": "mg",
+    "maxDailyDose": 500,
+    "frequency": "once daily",
+    "notes": "Typical course: 500mg day 1, then 250mg days 2-5 or 500mg x 3 days."
+  },
+  "amoxicillin": {
+    "min": 250,
+    "max": 1000,
+    "unit": "mg",
+    "maxDailyDose": 3000,
+    "frequency": "every 8 hours",
+    "notes": "Can be taken with or without food."
+  },
+  "amoxicillin+clavulanate": {
+    "min": 375,
+    "max": 1000,
+    "unit": "mg",
+    "maxDailyDose": 3000,
+    "frequency": "every 8-12 hours",
+    "notes": "Take with food to reduce GI side effects."
+  },
+  "cefixime": {
+    "min": 100,
+    "max": 400,
+    "unit": "mg",
+    "maxDailyDose": 400,
+    "frequency": "once or twice daily",
+    "notes": "Oral third-generation cephalosporin."
+  },
+  "ciprofloxacin": {
+    "min": 250,
+    "max": 750,
+    "unit": "mg",
+    "maxDailyDose": 1500,
+    "frequency": "every 12 hours",
+    "notes": "Avoid with dairy products and antacids."
+  },
+  "levofloxacin": {
+    "min": 250,
+    "max": 750,
+    "unit": "mg",
+    "maxDailyDose": 750,
+    "frequency": "once daily",
+    "notes": "Risk of tendon rupture, especially with corticosteroids."
+  },
+  "metronidazole": {
+    "min": 200,
+    "max": 400,
+    "unit": "mg",
+    "maxDailyDose": 1200,
+    "frequency": "every 8 hours",
+    "notes": "Avoid alcohol. Metallic taste common."
+  },
+  "pantoprazole": {
+    "min": 20,
+    "max": 40,
+    "unit": "mg",
+    "maxDailyDose": 80,
+    "frequency": "once or twice daily",
+    "notes": "Take 30-60 minutes before meals."
+  },
+  "rabeprazole": {
+    "min": 10,
+    "max": 20,
+    "unit": "mg",
+    "maxDailyDose": 40,
+    "frequency": "once or twice daily",
+    "notes": "Take before meals."
+  },
+  "omeprazole": {
+    "min": 10,
+    "max": 40,
+    "unit": "mg",
+    "maxDailyDose": 40,
+    "frequency": "once daily",
+    "notes": "Take 30-60 minutes before meals."
+  },
+  "domperidone": {
+    "min": 10,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 30,
+    "frequency": "every 8 hours",
+    "notes": "Take before meals. QT prolongation risk — use lowest dose for shortest time."
+  },
+  "ondansetron": {
+    "min": 4,
+    "max": 8,
+    "unit": "mg",
+    "maxDailyDose": 24,
+    "frequency": "every 8 hours",
+    "notes": "Can be given orally or IV."
+  },
+  "cetirizine": {
+    "min": 5,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 10,
+    "frequency": "once daily",
+    "notes": "Less sedating antihistamine."
+  },
+  "levocetirizine": {
+    "min": 2.5,
+    "max": 5,
+    "unit": "mg",
+    "maxDailyDose": 5,
+    "frequency": "once daily",
+    "notes": "Active enantiomer of cetirizine."
+  },
+  "fexofenadine": {
+    "min": 60,
+    "max": 180,
+    "unit": "mg",
+    "maxDailyDose": 180,
+    "frequency": "once or twice daily",
+    "notes": "Non-sedating antihistamine."
+  },
+  "montelukast": {
+    "min": 10,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 10,
+    "frequency": "once daily at bedtime",
+    "notes": "Monitor for neuropsychiatric symptoms."
+  },
+  "metformin": {
+    "min": 250,
+    "max": 1000,
+    "unit": "mg",
+    "maxDailyDose": 2550,
+    "frequency": "every 8-12 hours",
+    "notes": "Take with meals. Contraindicated if eGFR <30. Hold before contrast procedures."
+  },
+  "glimepiride": {
+    "min": 1,
+    "max": 6,
+    "unit": "mg",
+    "maxDailyDose": 8,
+    "frequency": "once daily before breakfast",
+    "notes": "Hypoglycemia risk, especially in elderly and renal impairment."
+  },
+  "sitagliptin": {
+    "min": 25,
+    "max": 100,
+    "unit": "mg",
+    "maxDailyDose": 100,
+    "frequency": "once daily",
+    "notes": "Dose adjust for renal impairment."
+  },
+  "vildagliptin": {
+    "min": 50,
+    "max": 50,
+    "unit": "mg",
+    "maxDailyDose": 100,
+    "frequency": "once or twice daily",
+    "notes": "Monitor liver function. Not recommended in hepatic impairment."
+  },
+  "empagliflozin": {
+    "min": 10,
+    "max": 25,
+    "unit": "mg",
+    "maxDailyDose": 25,
+    "frequency": "once daily",
+    "notes": "Risk of genital infections and DKA. Adequate hydration important."
+  },
+  "dapagliflozin": {
+    "min": 5,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 10,
+    "frequency": "once daily",
+    "notes": "Risk of genital infections and DKA."
+  },
+  "amlodipine": {
+    "min": 2.5,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 10,
+    "frequency": "once daily",
+    "notes": "Peripheral edema common. Start low in elderly."
+  },
+  "telmisartan": {
+    "min": 20,
+    "max": 80,
+    "unit": "mg",
+    "maxDailyDose": 80,
+    "frequency": "once daily",
+    "notes": "Monitor potassium and creatinine. Contraindicated in pregnancy."
+  },
+  "losartan": {
+    "min": 25,
+    "max": 100,
+    "unit": "mg",
+    "maxDailyDose": 100,
+    "frequency": "once or twice daily",
+    "notes": "Monitor potassium and creatinine. Contraindicated in pregnancy."
+  },
+  "enalapril": {
+    "min": 2.5,
+    "max": 20,
+    "unit": "mg",
+    "maxDailyDose": 40,
+    "frequency": "once or twice daily",
+    "notes": "Dry cough common. Monitor potassium and creatinine."
+  },
+  "ramipril": {
+    "min": 1.25,
+    "max": 10,
+    "unit": "mg",
+    "maxDailyDose": 10,
+    "frequency": "once daily",
+    "notes": "Dry cough common. Monitor potassium and creatinine."
+  },
+  "atenolol": {
+    "min": 25,
+    "max": 100,
+    "unit": "mg",
+    "maxDailyDose": 100,
+    "frequency": "once daily",
+    "notes": "Do not stop abruptly. Dose adjust in renal impairment."
+  },
+  "metoprolol": {
+    "min": 25,
+    "max": 200,
+    "unit": "mg",
+    "maxDailyDose": 400,
+    "frequency": "once or twice daily",
+    "notes": "Do not stop abruptly. Extended-release available."
+  },
+  "aspirin": {
+    "min": 75,
+    "max": 325,
+    "unit": "mg",
+    "maxDailyDose": 325,
+    "frequency": "once daily",
+    "notes": "Low dose (75-150mg) for antiplatelet. Take with food."
+  },
+  "clopidogrel": {
+    "min": 75,
+    "max": 75,
+    "unit": "mg",
+    "maxDailyDose": 75,
+    "frequency": "once daily",
+    "notes": "Loading dose 300-600mg may be used in ACS."
+  },
+  "atorvastatin": {
+    "min": 10,
+    "max": 80,
+    "unit": "mg",
+    "maxDailyDose": 80,
+    "frequency": "once daily",
+    "notes": "Take at night. Monitor liver function and muscle symptoms."
+  },
+  "rosuvastatin": {
+    "min": 5,
+    "max": 40,
+    "unit": "mg",
+    "maxDailyDose": 40,
+    "frequency": "once daily",
+    "notes": "Most potent statin. South Asian patients may start at lower doses."
+  },
+  "levothyroxine": {
+    "min": 12.5,
+    "max": 200,
+    "unit": "mcg",
+    "maxDailyDose": 300,
+    "frequency": "once daily on empty stomach",
+    "notes": "Take 30-60 min before breakfast. Separate from calcium/iron by 4 hours."
+  },
+  "prednisolone": {
+    "min": 5,
+    "max": 60,
+    "unit": "mg",
+    "maxDailyDose": 60,
+    "frequency": "once daily in morning",
+    "notes": "Taper gradually if >2 weeks. Monitor blood glucose."
+  },
+  "salbutamol": {
+    "min": 2,
+    "max": 4,
+    "unit": "mg",
+    "maxDailyDose": 16,
+    "frequency": "every 6-8 hours",
+    "notes": "Inhaled route preferred. Tablet dose shown."
+  },
+  "furosemide": {
+    "min": 20,
+    "max": 80,
+    "unit": "mg",
+    "maxDailyDose": 600,
+    "frequency": "once or twice daily",
+    "notes": "Monitor potassium. Take in morning to avoid nocturia."
+  },
+  "spironolactone": {
+    "min": 12.5,
+    "max": 100,
+    "unit": "mg",
+    "maxDailyDose": 400,
+    "frequency": "once or twice daily",
+    "notes": "Monitor potassium. Gynecomastia may occur."
+  },
+  "alprazolam": {
+    "min": 0.25,
+    "max": 0.5,
+    "unit": "mg",
+    "maxDailyDose": 4,
+    "frequency": "every 8 hours as needed",
+    "notes": "Schedule H1 drug. Short-term use only. Dependence risk."
+  },
+  "clonazepam": {
+    "min": 0.25,
+    "max": 2,
+    "unit": "mg",
+    "maxDailyDose": 8,
+    "frequency": "every 12 hours",
+    "notes": "Schedule H1 drug. Gradual taper needed."
+  },
+  "escitalopram": {
+    "min": 5,
+    "max": 20,
+    "unit": "mg",
+    "maxDailyDose": 20,
+    "frequency": "once daily",
+    "notes": "Allow 2-4 weeks for effect. QT prolongation at higher doses."
+  },
+  "amitriptyline": {
+    "min": 10,
+    "max": 75,
+    "unit": "mg",
+    "maxDailyDose": 150,
+    "frequency": "once daily at bedtime",
+    "notes": "Sedating. Low doses (10-25mg) for neuropathic pain."
+  },
+  "pregabalin": {
+    "min": 75,
+    "max": 300,
+    "unit": "mg",
+    "maxDailyDose": 600,
+    "frequency": "every 12 hours",
+    "notes": "Schedule H1 drug. Start low, titrate slowly."
+  },
+  "gabapentin": {
+    "min": 100,
+    "max": 800,
+    "unit": "mg",
+    "maxDailyDose": 3600,
+    "frequency": "every 8 hours",
+    "notes": "Titrate over 1-2 weeks. Dose adjust in renal impairment."
+  },
+  "methylcobalamin": {
+    "min": 500,
+    "max": 1500,
+    "unit": "mcg",
+    "maxDailyDose": 1500,
+    "frequency": "once daily",
+    "notes": "For B12 deficiency and neuropathy."
+  },
+  "fluconazole": {
+    "min": 50,
+    "max": 400,
+    "unit": "mg",
+    "maxDailyDose": 400,
+    "frequency": "once daily",
+    "notes": "Single 150mg dose common for vaginal candidiasis."
+  },
+  "albendazole": {
+    "min": 400,
+    "max": 400,
+    "unit": "mg",
+    "maxDailyDose": 800,
+    "frequency": "single dose or twice daily",
+    "notes": "Take with fatty food. Single 400mg dose for most helminths."
+  },
+  "tamsulosin": {
+    "min": 0.2,
+    "max": 0.4,
+    "unit": "mg",
+    "maxDailyDose": 0.8,
+    "frequency": "once daily after meals",
+    "notes": "For BPH. Orthostatic hypotension risk."
+  }
+}

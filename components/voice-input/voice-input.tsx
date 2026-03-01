@@ -14,6 +14,8 @@ import {
   getLanguageOptions,
 } from './languages';
 import DocumentGenerator from '../document-generator/document-generator';
+import AiAnalysisPanel from '../ai-analysis/ai-analysis-panel';
+import type { PrescriptionData } from '@/types/clinical-analysis';
 import { LANGUAGE_LABELS, getSpeakerLabel } from '@/constants/mappings';
 import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
 import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
@@ -121,7 +123,9 @@ export default function VoiceInput() {
   const [englishTranslation, setEnglishTranslation] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
+  const [preProcessedData, setPreProcessedData] = useState<PrescriptionData | undefined>(undefined);
 
   const streaming = useTranscribe();
   const batch = useBatchTranscribe(getBatchFunctionName());
@@ -509,11 +513,26 @@ export default function VoiceInput() {
         </div>
       )}
 
-      {/* Generate button */}
+      {/* Generate button — opens AI Analysis first */}
       {hasAnyContent && !isBusy && (
-        <button onClick={() => setShowDocumentGenerator(true)} className={styles.generateButton}>
+        <button onClick={() => setShowAnalysis(true)} className={styles.generateButton}>
           {GENERATE_BUTTON_TEXT}
         </button>
+      )}
+
+      {/* AI Analysis Panel */}
+      {showAnalysis && (
+        <AiAnalysisPanel
+          transcription={currentTranscript}
+          segments={batch.segments}
+          mode={isConsultation ? 'consultation' : 'dictation'}
+          onClose={() => setShowAnalysis(false)}
+          onProceedToGeneration={(data) => {
+            setPreProcessedData(data);
+            setShowAnalysis(false);
+            setShowDocumentGenerator(true);
+          }}
+        />
       )}
 
       {/* Document Generator Modal */}
@@ -522,7 +541,11 @@ export default function VoiceInput() {
           transcription={currentTranscript}
           segments={batch.segments}
           mode={isConsultation ? 'consultation' : 'dictation'}
-          onClose={() => setShowDocumentGenerator(false)}
+          onClose={() => {
+            setShowDocumentGenerator(false);
+            setPreProcessedData(undefined);
+          }}
+          prescriptionData={preProcessedData}
         />
       )}
     </div>

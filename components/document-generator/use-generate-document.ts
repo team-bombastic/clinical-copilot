@@ -49,7 +49,8 @@ export interface UseGenerateDocumentReturn {
     file: File,
     transcription: string,
     segments: ConsultationSegment[],
-    mode: 'dictation' | 'consultation'
+    mode: 'dictation' | 'consultation',
+    preProcessedData?: PrescriptionData
   ) => Promise<void>;
   clearState: () => void;
 }
@@ -78,7 +79,8 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
       file: File,
       transcription: string,
       segments: ConsultationSegment[],
-      mode: 'dictation' | 'consultation'
+      mode: 'dictation' | 'consultation',
+      preProcessedData?: PrescriptionData
     ) => {
       setIsGenerating(true);
       setError(null);
@@ -119,7 +121,7 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
 
         const userId = session.tokens?.idToken?.payload?.sub || 'anonymous';
 
-        const payload = {
+        const payload: Record<string, unknown> = {
           templateBase64: base64,
           templateMediaType: mediaType,
           transcriptionText: transcription,
@@ -127,6 +129,10 @@ export function useGenerateDocument(): UseGenerateDocumentReturn {
           mode,
           userId,
         };
+
+        if (preProcessedData) {
+          payload.preProcessedData = preProcessedData;
+        }
 
         const functionName = getPrescriptionFunctionName();
         if (!functionName) {

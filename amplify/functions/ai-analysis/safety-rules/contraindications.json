@@ -1,0 +1,236 @@
+[
+  {
+    "condition": "renal impairment",
+    "drug": "metformin",
+    "severity": "critical",
+    "message": "Metformin is contraindicated in significant renal impairment (eGFR <30). Risk of lactic acidosis."
+  },
+  {
+    "condition": "renal failure",
+    "drug": "metformin",
+    "severity": "critical",
+    "message": "Metformin is contraindicated in renal failure. Risk of lactic acidosis."
+  },
+  {
+    "condition": "liver disease",
+    "drug": "metformin",
+    "severity": "critical",
+    "message": "Metformin is contraindicated in severe hepatic impairment. Risk of lactic acidosis."
+  },
+  {
+    "condition": "hepatic impairment",
+    "drug": "metformin",
+    "severity": "critical",
+    "message": "Metformin is contraindicated in severe hepatic impairment."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "enalapril",
+    "severity": "critical",
+    "message": "ACE inhibitors are contraindicated in pregnancy. Risk of fetal renal damage and oligohydramnios."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "ramipril",
+    "severity": "critical",
+    "message": "ACE inhibitors are contraindicated in pregnancy."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "telmisartan",
+    "severity": "critical",
+    "message": "ARBs are contraindicated in pregnancy. Risk of fetal renal damage."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "losartan",
+    "severity": "critical",
+    "message": "ARBs are contraindicated in pregnancy."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "warfarin",
+    "severity": "critical",
+    "message": "Warfarin is contraindicated in pregnancy (especially first trimester). Risk of fetal warfarin syndrome."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "methotrexate",
+    "severity": "critical",
+    "message": "Methotrexate is absolutely contraindicated in pregnancy. Teratogenic."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "isotretinoin",
+    "severity": "critical",
+    "message": "Isotretinoin is absolutely contraindicated in pregnancy. Highly teratogenic."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "doxycycline",
+    "severity": "critical",
+    "message": "Tetracyclines are contraindicated in pregnancy. Risk of dental staining and bone growth inhibition."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "ciprofloxacin",
+    "severity": "warning",
+    "message": "Fluoroquinolones should be avoided in pregnancy. Risk of cartilage damage."
+  },
+  {
+    "condition": "pregnancy",
+    "drug": "levofloxacin",
+    "severity": "warning",
+    "message": "Fluoroquinolones should be avoided in pregnancy."
+  },
+  {
+    "condition": "asthma",
+    "drug": "atenolol",
+    "severity": "critical",
+    "message": "Non-selective beta-blockers are contraindicated in asthma. Risk of bronchospasm."
+  },
+  {
+    "condition": "asthma",
+    "drug": "propranolol",
+    "severity": "critical",
+    "message": "Propranolol is contraindicated in asthma. Risk of severe bronchospasm."
+  },
+  {
+    "condition": "asthma",
+    "drug": "aspirin",
+    "severity": "warning",
+    "message": "Aspirin may trigger bronchospasm in aspirin-sensitive asthma patients."
+  },
+  {
+    "condition": "peptic ulcer",
+    "drug": "aspirin",
+    "severity": "critical",
+    "message": "Aspirin is contraindicated in active peptic ulcer disease. High GI bleeding risk."
+  },
+  {
+    "condition": "peptic ulcer",
+    "drug": "diclofenac",
+    "severity": "critical",
+    "message": "NSAIDs are contraindicated in active peptic ulcer disease."
+  },
+  {
+    "condition": "peptic ulcer",
+    "drug": "ibuprofen",
+    "severity": "critical",
+    "message": "NSAIDs are contraindicated in active peptic ulcer disease."
+  },
+  {
+    "condition": "gi bleeding",
+    "drug": "aspirin",
+    "severity": "critical",
+    "message": "Aspirin is contraindicated in active GI bleeding."
+  },
+  {
+    "condition": "gi bleeding",
+    "drug": "clopidogrel",
+    "severity": "critical",
+    "message": "Clopidogrel increases bleeding risk in active GI bleeding."
+  },
+  {
+    "condition": "heart block",
+    "drug": "atenolol",
+    "severity": "critical",
+    "message": "Beta-blockers are contraindicated in second or third degree heart block."
+  },
+  {
+    "condition": "heart block",
+    "drug": "metoprolol",
+    "severity": "critical",
+    "message": "Beta-blockers are contraindicated in second or third degree heart block."
+  },
+  {
+    "condition": "heart failure",
+    "drug": "verapamil",
+    "severity": "critical",
+    "message": "Verapamil is contraindicated in heart failure with reduced ejection fraction."
+  },
+  {
+    "condition": "gout",
+    "drug": "hydrochlorothiazide",
+    "severity": "warning",
+    "message": "Thiazide diuretics can precipitate gout attacks by raising uric acid levels."
+  },
+  {
+    "condition": "gout",
+    "drug": "furosemide",
+    "severity": "warning",
+    "message": "Loop diuretics can increase uric acid levels and precipitate gout."
+  },
+  {
+    "condition": "myasthenia gravis",
+    "drug": "azithromycin",
+    "severity": "critical",
+    "message": "Macrolides may exacerbate myasthenia gravis. Use with extreme caution."
+  },
+  {
+    "condition": "myasthenia gravis",
+    "drug": "ciprofloxacin",
+    "severity": "critical",
+    "message": "Fluoroquinolones may exacerbate myasthenia gravis."
+  },
+  {
+    "condition": "g6pd deficiency",
+    "drug": "dapsone",
+    "severity": "critical",
+    "message": "Dapsone is contraindicated in G6PD deficiency. Risk of severe hemolytic anemia."
+  },
+  {
+    "condition": "g6pd deficiency",
+    "drug": "primaquine",
+    "severity": "critical",
+    "message": "Primaquine is contraindicated in G6PD deficiency."
+  },
+  {
+    "condition": "diabetes",
+    "drug": "prednisolone",
+    "severity": "warning",
+    "message": "Corticosteroids can significantly increase blood glucose. Monitor closely in diabetic patients."
+  },
+  {
+    "condition": "diabetes",
+    "drug": "hydrochlorothiazide",
+    "severity": "warning",
+    "message": "Thiazides may worsen glycemic control. Monitor blood glucose."
+  },
+  {
+    "condition": "epilepsy",
+    "drug": "tramadol",
+    "severity": "warning",
+    "message": "Tramadol lowers seizure threshold. Use with caution in epilepsy."
+  },
+  {
+    "condition": "epilepsy",
+    "drug": "fluoroquinolone",
+    "severity": "warning",
+    "message": "Fluoroquinolones may lower seizure threshold."
+  },
+  {
+    "condition": "hypothyroidism",
+    "drug": "amiodarone",
+    "severity": "warning",
+    "message": "Amiodarone can worsen hypothyroidism due to high iodine content."
+  },
+  {
+    "condition": "qt prolongation",
+    "drug": "azithromycin",
+    "severity": "critical",
+    "message": "Azithromycin prolongs QT interval. Avoid in patients with known QT prolongation."
+  },
+  {
+    "condition": "qt prolongation",
+    "drug": "domperidone",
+    "severity": "critical",
+    "message": "Domperidone prolongs QT interval. Contraindicated in QT prolongation."
+  },
+  {
+    "condition": "qt prolongation",
+    "drug": "escitalopram",
+    "severity": "warning",
+    "message": "Escitalopram may prolong QT interval, especially at doses >20mg."
+  }
+]

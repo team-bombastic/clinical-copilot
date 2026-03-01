@@ -14,6 +14,14 @@ export const ERR_FUNCTION_NOT_CONFIGURED =
 export const ERR_TEXTRACT_FAILED = 'Failed to extract fields from template image';
 export const ERR_PDF_GENERATION_FAILED = 'Failed to generate PDF';
 
+// ─── AI Analysis ───
+export const ERR_ANALYSIS_FAILED = 'AI analysis failed';
+export const ERR_ANALYSIS_FUNCTION_NOT_CONFIGURED =
+  'AI analysis function not configured. Deploy the Amplify backend first.';
+export const ERR_NO_TRANSCRIPT_FOR_ANALYSIS = 'No transcript available for analysis';
+export const ERR_CRITICAL_ALERTS_UNACKNOWLEDGED =
+  'Please acknowledge all critical safety alerts before proceeding';
+
 // ─── Lambda ───
 export const errLambda = (payload: string) => `Lambda error: ${payload}`;
 export const errTranscriptionJobFailed = (status: string) =>

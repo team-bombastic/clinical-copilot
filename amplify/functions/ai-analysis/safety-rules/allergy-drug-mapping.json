@@ -1,0 +1,139 @@
+{
+  "penicillin": [
+    "amoxicillin",
+    "amoxicillin+clavulanate",
+    "ampicillin",
+    "piperacillin",
+    "piperacillin+tazobactam",
+    "benzylpenicillin",
+    "phenoxymethylpenicillin",
+    "cloxacillin",
+    "flucloxacillin"
+  ],
+  "cephalosporin": [
+    "cefixime",
+    "ceftriaxone",
+    "cefuroxime",
+    "cephalexin",
+    "cefpodoxime",
+    "cefoperazone",
+    "cefotaxime",
+    "cefazolin"
+  ],
+  "sulfonamide": [
+    "sulfasalazine",
+    "cotrimoxazole",
+    "trimethoprim+sulfamethoxazole",
+    "sulfadiazine",
+    "dapsone"
+  ],
+  "nsaid": [
+    "aspirin",
+    "ibuprofen",
+    "diclofenac",
+    "aceclofenac",
+    "naproxen",
+    "piroxicam",
+    "mefenamic acid",
+    "indomethacin",
+    "ketorolac",
+    "etoricoxib",
+    "celecoxib"
+  ],
+  "aspirin": [
+    "aspirin",
+    "ibuprofen",
+    "diclofenac",
+    "naproxen",
+    "aceclofenac",
+    "mefenamic acid"
+  ],
+  "fluoroquinolone": [
+    "ciprofloxacin",
+    "levofloxacin",
+    "ofloxacin",
+    "norfloxacin",
+    "moxifloxacin",
+    "gatifloxacin"
+  ],
+  "macrolide": [
+    "azithromycin",
+    "erythromycin",
+    "clarithromycin",
+    "roxithromycin"
+  ],
+  "tetracycline": [
+    "doxycycline",
+    "tetracycline",
+    "minocycline"
+  ],
+  "aminoglycoside": [
+    "gentamicin",
+    "amikacin",
+    "tobramycin",
+    "streptomycin"
+  ],
+  "statin": [
+    "atorvastatin",
+    "rosuvastatin",
+    "simvastatin",
+    "pravastatin",
+    "fluvastatin"
+  ],
+  "ace inhibitor": [
+    "enalapril",
+    "ramipril",
+    "lisinopril",
+    "perindopril",
+    "captopril"
+  ],
+  "arb": [
+    "telmisartan",
+    "losartan",
+    "valsartan",
+    "olmesartan",
+    "irbesartan",
+    "candesartan"
+  ],
+  "beta blocker": [
+    "atenolol",
+    "metoprolol",
+    "propranolol",
+    "bisoprolol",
+    "carvedilol",
+    "nebivolol"
+  ],
+  "benzodiazepine": [
+    "alprazolam",
+    "clonazepam",
+    "diazepam",
+    "lorazepam",
+    "nitrazepam",
+    "midazolam"
+  ],
+  "opioid": [
+    "tramadol",
+    "morphine",
+    "fentanyl",
+    "codeine",
+    "pethidine",
+    "buprenorphine"
+  ],
+  "insulin": [
+    "insulin regular",
+    "insulin nph",
+    "insulin glargine",
+    "insulin aspart",
+    "insulin lispro",
+    "insulin degludec"
+  ],
+  "iodine": [
+    "povidone iodine",
+    "amiodarone",
+    "iodinated contrast"
+  ],
+  "latex": [],
+  "egg": [
+    "propofol"
+  ]
+}

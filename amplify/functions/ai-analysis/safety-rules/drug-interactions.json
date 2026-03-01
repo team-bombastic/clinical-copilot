@@ -1,0 +1,224 @@
+[
+  {
+    "drug1": "warfarin",
+    "drug2": "aspirin",
+    "severity": "critical",
+    "message": "Warfarin + Aspirin: Significantly increased bleeding risk. Monitor INR closely if combination is necessary."
+  },
+  {
+    "drug1": "warfarin",
+    "drug2": "metronidazole",
+    "severity": "critical",
+    "message": "Warfarin + Metronidazole: Metronidazole inhibits warfarin metabolism, increasing bleeding risk."
+  },
+  {
+    "drug1": "warfarin",
+    "drug2": "fluconazole",
+    "severity": "critical",
+    "message": "Warfarin + Fluconazole: Fluconazole inhibits CYP2C9, significantly increasing warfarin levels."
+  },
+  {
+    "drug1": "metformin",
+    "drug2": "metronidazole",
+    "severity": "warning",
+    "message": "Metformin + Metronidazole: Increased risk of lactic acidosis. Monitor renal function."
+  },
+  {
+    "drug1": "metformin",
+    "drug2": "furosemide",
+    "severity": "warning",
+    "message": "Metformin + Furosemide: Furosemide may increase metformin levels. Monitor blood glucose."
+  },
+  {
+    "drug1": "azithromycin",
+    "drug2": "amiodarone",
+    "severity": "critical",
+    "message": "Azithromycin + Amiodarone: Risk of QT prolongation and cardiac arrhythmias."
+  },
+  {
+    "drug1": "azithromycin",
+    "drug2": "domperidone",
+    "severity": "warning",
+    "message": "Azithromycin + Domperidone: Both prolong QT interval. Risk of cardiac arrhythmias."
+  },
+  {
+    "drug1": "ciprofloxacin",
+    "drug2": "theophylline",
+    "severity": "critical",
+    "message": "Ciprofloxacin + Theophylline: Ciprofloxacin inhibits theophylline metabolism, risk of toxicity."
+  },
+  {
+    "drug1": "ciprofloxacin",
+    "drug2": "tizanidine",
+    "severity": "critical",
+    "message": "Ciprofloxacin + Tizanidine: Contraindicated. Ciprofloxacin increases tizanidine levels 10-fold."
+  },
+  {
+    "drug1": "clopidogrel",
+    "drug2": "omeprazole",
+    "severity": "warning",
+    "message": "Clopidogrel + Omeprazole: Omeprazole reduces clopidogrel activation via CYP2C19. Consider pantoprazole instead."
+  },
+  {
+    "drug1": "clopidogrel",
+    "drug2": "aspirin",
+    "severity": "warning",
+    "message": "Clopidogrel + Aspirin: Dual antiplatelet therapy increases bleeding risk. Ensure indication is appropriate."
+  },
+  {
+    "drug1": "enalapril",
+    "drug2": "spironolactone",
+    "severity": "warning",
+    "message": "ACE Inhibitor + Spironolactone: Risk of hyperkalemia. Monitor potassium levels."
+  },
+  {
+    "drug1": "ramipril",
+    "drug2": "spironolactone",
+    "severity": "warning",
+    "message": "ACE Inhibitor + Spironolactone: Risk of hyperkalemia. Monitor potassium levels."
+  },
+  {
+    "drug1": "enalapril",
+    "drug2": "losartan",
+    "severity": "critical",
+    "message": "ACE Inhibitor + ARB: Dual RAAS blockade increases risk of hypotension, hyperkalemia, and renal impairment."
+  },
+  {
+    "drug1": "ramipril",
+    "drug2": "telmisartan",
+    "severity": "critical",
+    "message": "ACE Inhibitor + ARB: Dual RAAS blockade increases risk of hypotension, hyperkalemia, and renal impairment."
+  },
+  {
+    "drug1": "amlodipine",
+    "drug2": "simvastatin",
+    "severity": "warning",
+    "message": "Amlodipine + Simvastatin: Amlodipine increases simvastatin levels. Limit simvastatin to 20mg/day."
+  },
+  {
+    "drug1": "metoprolol",
+    "drug2": "verapamil",
+    "severity": "critical",
+    "message": "Beta-blocker + Verapamil: Risk of severe bradycardia, heart block, and cardiac failure."
+  },
+  {
+    "drug1": "atenolol",
+    "drug2": "verapamil",
+    "severity": "critical",
+    "message": "Beta-blocker + Verapamil: Risk of severe bradycardia, heart block, and cardiac failure."
+  },
+  {
+    "drug1": "diclofenac",
+    "drug2": "aspirin",
+    "severity": "warning",
+    "message": "Diclofenac + Aspirin: Increased GI bleeding risk. Diclofenac may reduce aspirin's cardioprotective effect."
+  },
+  {
+    "drug1": "ibuprofen",
+    "drug2": "aspirin",
+    "severity": "warning",
+    "message": "Ibuprofen + Aspirin: Ibuprofen may reduce aspirin's antiplatelet effect. Increased GI bleeding risk."
+  },
+  {
+    "drug1": "diclofenac",
+    "drug2": "metformin",
+    "severity": "warning",
+    "message": "NSAIDs + Metformin: NSAIDs may impair renal function, increasing metformin accumulation risk."
+  },
+  {
+    "drug1": "ibuprofen",
+    "drug2": "enalapril",
+    "severity": "warning",
+    "message": "NSAIDs + ACE Inhibitor: NSAIDs reduce antihypertensive effect and increase renal impairment risk."
+  },
+  {
+    "drug1": "diclofenac",
+    "drug2": "ramipril",
+    "severity": "warning",
+    "message": "NSAIDs + ACE Inhibitor: NSAIDs reduce antihypertensive effect and increase renal impairment risk."
+  },
+  {
+    "drug1": "fluoxetine",
+    "drug2": "tramadol",
+    "severity": "critical",
+    "message": "SSRI + Tramadol: Risk of serotonin syndrome. Avoid combination."
+  },
+  {
+    "drug1": "escitalopram",
+    "drug2": "tramadol",
+    "severity": "critical",
+    "message": "SSRI + Tramadol: Risk of serotonin syndrome. Avoid combination."
+  },
+  {
+    "drug1": "alprazolam",
+    "drug2": "tramadol",
+    "severity": "critical",
+    "message": "Benzodiazepine + Opioid: Risk of respiratory depression, sedation, and death."
+  },
+  {
+    "drug1": "clonazepam",
+    "drug2": "tramadol",
+    "severity": "critical",
+    "message": "Benzodiazepine + Opioid: Risk of respiratory depression, sedation, and death."
+  },
+  {
+    "drug1": "levofloxacin",
+    "drug2": "prednisolone",
+    "severity": "warning",
+    "message": "Fluoroquinolone + Corticosteroid: Increased risk of tendon rupture, especially in elderly."
+  },
+  {
+    "drug1": "ciprofloxacin",
+    "drug2": "prednisolone",
+    "severity": "warning",
+    "message": "Fluoroquinolone + Corticosteroid: Increased risk of tendon rupture, especially in elderly."
+  },
+  {
+    "drug1": "glimepiride",
+    "drug2": "fluconazole",
+    "severity": "warning",
+    "message": "Glimepiride + Fluconazole: Fluconazole inhibits CYP2C9, increasing hypoglycemia risk."
+  },
+  {
+    "drug1": "levothyroxine",
+    "drug2": "calcium",
+    "severity": "warning",
+    "message": "Levothyroxine + Calcium: Calcium reduces levothyroxine absorption. Separate doses by 4 hours."
+  },
+  {
+    "drug1": "levothyroxine",
+    "drug2": "pantoprazole",
+    "severity": "warning",
+    "message": "Levothyroxine + PPI: PPIs reduce levothyroxine absorption. Monitor TSH levels."
+  },
+  {
+    "drug1": "digoxin",
+    "drug2": "furosemide",
+    "severity": "warning",
+    "message": "Digoxin + Furosemide: Furosemide-induced hypokalemia increases digoxin toxicity risk."
+  },
+  {
+    "drug1": "lithium",
+    "drug2": "diclofenac",
+    "severity": "critical",
+    "message": "Lithium + NSAIDs: NSAIDs reduce lithium excretion, risk of lithium toxicity."
+  },
+  {
+    "drug1": "lithium",
+    "drug2": "enalapril",
+    "severity": "critical",
+    "message": "Lithium + ACE Inhibitor: ACE inhibitors reduce lithium excretion, risk of toxicity."
+  },
+  {
+    "drug1": "phenytoin",
+    "drug2": "fluconazole",
+    "severity": "critical",
+    "message": "Phenytoin + Fluconazole: Fluconazole inhibits phenytoin metabolism, increasing toxicity risk."
+  },
+  {
+    "drug1": "carbamazepine",
+    "drug2": "azithromycin",
+    "severity": "warning",
+    "message": "Carbamazepine + Azithromycin: May increase carbamazepine levels. Monitor for toxicity."
+  }
+]

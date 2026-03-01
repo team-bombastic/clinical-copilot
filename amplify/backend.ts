@@ -5,6 +5,7 @@ import { data } from './data/resource';
 import { storage } from './storage/resource';
 import { batchTranscribe } from './functions/batch-transcribe/resource';
 import { generatePrescription } from './functions/generate-prescription/resource';
+import { aiAnalysis } from './functions/ai-analysis/resource';
 
 const backend = defineBackend({
   auth,
@@ -12,6 +13,7 @@ const backend = defineBackend({
   storage,
   batchTranscribe,
   generatePrescription,
+  aiAnalysis,
 });
 
 // -- Authenticated user policies (streaming transcribe + translate) --
@@ -51,6 +53,16 @@ authenticatedRole.addToPrincipalPolicy(
   new PolicyStatement({
     actions: ['lambda:InvokeFunction'],
     resources: [prescriptionFn.functionArn],
+  })
+);
+
+// Grant authenticated user permission to invoke the ai-analysis Lambda
+const analysisFn = backend.aiAnalysis.resources.lambda;
+
+authenticatedRole.addToPrincipalPolicy(
+  new PolicyStatement({
+    actions: ['lambda:InvokeFunction'],
+    resources: [analysisFn.functionArn],
   })
 );
 
@@ -107,10 +119,27 @@ prescriptionFn.addToRolePolicy(
   })
 );
 
+// Bedrock permissions for ai-analysis Lambda
+analysisFn.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['bedrock:InvokeModel', 'bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
+    resources: ['*'],
+  })
+);
+
+// S3 read access for ai-analysis Lambda
+bucket.grantRead(analysisFn);
+
+// Pass env vars to ai-analysis Lambda
+backend.aiAnalysis.addEnvironment('STORAGE_BUCKET_NAME', bucket.bucketName);
+backend.aiAnalysis.addEnvironment('BEDROCK_REGION', 'us-east-1');
+backend.aiAnalysis.addEnvironment('KNOWLEDGE_BASE_ID', process.env.KNOWLEDGE_BASE_ID || '');
+
 // Export the Lambda function names so the client can reference them
 backend.addOutput({
   custom: {
     batchTranscribeFunctionName: batchFn.functionName,
     generatePrescriptionFunctionName: prescriptionFn.functionName,
+    aiAnalysisFunctionName: analysisFn.functionName,
   },
 });
