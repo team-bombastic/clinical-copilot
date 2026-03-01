@@ -17,8 +17,5 @@ export const TRANSCRIBE_POLL_INTERVAL_MS = 1500;
 export const S3_TEMP_AUDIO_PREFIX = 'temp-audio';
 export const S3_PRESCRIPTIONS_PREFIX = 'prescriptions';
 
-// ─── File Upload ───
-export const ACCEPTED_TEMPLATE_TYPES = 'image/jpeg,image/png,image/webp';
-
 // ─── PDF ───
 export const PDF_FILENAME_PREFIX = 'prescription';

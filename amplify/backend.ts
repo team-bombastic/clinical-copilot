@@ -111,14 +111,6 @@ prescriptionFn.addToRolePolicy(
   })
 );
 
-// Textract AnalyzeDocument permission for prescription Lambda
-prescriptionFn.addToRolePolicy(
-  new PolicyStatement({
-    actions: ['textract:AnalyzeDocument'],
-    resources: ['*'],
-  })
-);
-
 // Bedrock permissions for ai-analysis Lambda
 analysisFn.addToRolePolicy(
   new PolicyStatement({

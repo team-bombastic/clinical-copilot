@@ -520,22 +520,25 @@ export default function VoiceInput() {
         </button>
       )}
 
-      {/* AI Analysis Panel */}
+      {/* AI Analysis Panel — stays mounted while doc generator is open so state is preserved */}
       {showAnalysis && (
         <AiAnalysisPanel
           transcription={currentTranscript}
           segments={batch.segments}
           mode={isConsultation ? 'consultation' : 'dictation'}
-          onClose={() => setShowAnalysis(false)}
+          onClose={() => {
+            setShowAnalysis(false);
+            setShowDocumentGenerator(false);
+            setPreProcessedData(undefined);
+          }}
           onProceedToGeneration={(data) => {
             setPreProcessedData(data);
-            setShowAnalysis(false);
             setShowDocumentGenerator(true);
           }}
         />
       )}
 
-      {/* Document Generator Modal */}
+      {/* Document Generator Modal — renders on top of the analysis panel */}
       {showDocumentGenerator && (
         <DocumentGenerator
           transcription={currentTranscript}
@@ -543,7 +546,11 @@ export default function VoiceInput() {
           mode={isConsultation ? 'consultation' : 'dictation'}
           onClose={() => {
             setShowDocumentGenerator(false);
+            setShowAnalysis(false);
             setPreProcessedData(undefined);
+          }}
+          onBackToAnalysis={() => {
+            setShowDocumentGenerator(false);
           }}
           prescriptionData={preProcessedData}
         />

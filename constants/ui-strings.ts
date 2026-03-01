@@ -37,16 +37,11 @@ export const recordingBatch = (lang: string) => `Recording (${lang})...`;
 export const processingBatch = (lang: string) => `Processing ${lang} audio...`;
 
 // ─── Document Generator ───
-export const DOC_GEN_TITLE = 'Generate Prescription';
+export const DOC_GEN_TITLE = 'Select Prescription Template';
 export const DOC_GEN_SUBTITLE =
-	'Upload your hospital template and generate a formatted prescription';
-export const DROP_ZONE_TEXT = 'Drop your hospital prescription template here';
-export const DROP_ZONE_HINT = 'or click to browse • JPEG, PNG';
-export const GENERATING_TEXT = 'Generating with AI...';
-export const GENERATE_PRESCRIPTION_TEXT = 'Generate Prescription';
-export const TAB_PREVIEW = 'Preview';
+	'Choose a template and download your prescription as PDF';
+export const SELECT_TEMPLATE_TEXT = 'Choose a template to get started';
 export const DOWNLOAD_PDF_TEXT = 'Download PDF';
-export const REUPLOAD_TEXT = '← Upload a different template';
 
 // ─── AI Analysis ───
 export const ANALYSIS_PANEL_TITLE = 'AI Clinical Analysis';
