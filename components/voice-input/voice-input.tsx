@@ -15,7 +15,7 @@ import {
 } from './languages';
 import DocumentGenerator from '../document-generator/document-generator';
 import AiAnalysisPanel from '../ai-analysis/ai-analysis-panel';
-import type { PrescriptionData } from '@/types/clinical-analysis';
+import type { PrescriptionData, VitalSigns } from '@/types/clinical-analysis';
 import { LANGUAGE_LABELS, getSpeakerLabel } from '@/constants/mappings';
 import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
 import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
@@ -126,6 +126,10 @@ export default function VoiceInput() {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
   const [preProcessedData, setPreProcessedData] = useState<PrescriptionData | undefined>(undefined);
+  const [extendedVitals, setExtendedVitals] = useState<VitalSigns | undefined>(undefined);
+  const [extendedAllergies, setExtendedAllergies] = useState<string[] | undefined>(undefined);
+  const [extendedMedicalHistory, setExtendedMedicalHistory] = useState<string[] | undefined>(undefined);
+  const [extendedClinicalSummary, setExtendedClinicalSummary] = useState<string | undefined>(undefined);
 
   const streaming = useTranscribe();
   const batch = useBatchTranscribe(getBatchFunctionName());
@@ -530,9 +534,17 @@ export default function VoiceInput() {
             setShowAnalysis(false);
             setShowDocumentGenerator(false);
             setPreProcessedData(undefined);
+            setExtendedVitals(undefined);
+            setExtendedAllergies(undefined);
+            setExtendedMedicalHistory(undefined);
+            setExtendedClinicalSummary(undefined);
           }}
-          onProceedToGeneration={(data) => {
+          onProceedToGeneration={(data, extended) => {
             setPreProcessedData(data);
+            setExtendedVitals(extended.vitalSigns);
+            setExtendedAllergies(extended.allergies);
+            setExtendedMedicalHistory(extended.medicalHistory);
+            setExtendedClinicalSummary(extended.clinicalSummary);
             setShowDocumentGenerator(true);
           }}
         />
@@ -548,11 +560,19 @@ export default function VoiceInput() {
             setShowDocumentGenerator(false);
             setShowAnalysis(false);
             setPreProcessedData(undefined);
+            setExtendedVitals(undefined);
+            setExtendedAllergies(undefined);
+            setExtendedMedicalHistory(undefined);
+            setExtendedClinicalSummary(undefined);
           }}
           onBackToAnalysis={() => {
             setShowDocumentGenerator(false);
           }}
           prescriptionData={preProcessedData}
+          vitalSigns={extendedVitals}
+          allergies={extendedAllergies}
+          medicalHistory={extendedMedicalHistory}
+          clinicalSummary={extendedClinicalSummary}
         />
       )}
     </div>

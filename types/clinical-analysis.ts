@@ -63,6 +63,13 @@ export interface VitalSigns {
   bmi?: string;
 }
 
+// ─── RAG Source Chunk (retrieved from knowledge base) ───
+
+export interface RagSourceChunk {
+  text: string;
+  sourceUri?: string;
+}
+
 // ─── Clinical Analysis Result ───
 
 export interface ClinicalAnalysisResult {
@@ -89,9 +96,21 @@ export interface ClinicalAnalysisResult {
   medicalHistory?: string[];
   clinicalSummary?: string;
   evidenceNotes?: string[];
+  ragSourceChunks?: RagSourceChunk[];
 
   // Safety
   safetyAlerts: SafetyAlert[];
+}
+
+// ─── OPD Note Data (extends PrescriptionData with clinical fields) ───
+
+export interface OpdNoteData extends PrescriptionData {
+  vitalSigns?: VitalSigns;
+  allergies?: string[];
+  medicalHistory?: string[];
+  historyOfPresentIllness?: string;
+  physicalExamination?: string;
+  clinicalSummary?: string;
 }
 
 // ─── PrescriptionData (matches existing shape in generate-prescription) ───

@@ -19,3 +19,4 @@ export const S3_PRESCRIPTIONS_PREFIX = 'prescriptions';
 
 // ─── PDF ───
 export const PDF_FILENAME_PREFIX = 'prescription';
+export const OPD_PDF_FILENAME_PREFIX = 'opd-note';

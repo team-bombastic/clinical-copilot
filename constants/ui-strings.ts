@@ -43,6 +43,21 @@ export const DOC_GEN_SUBTITLE =
 export const SELECT_TEMPLATE_TEXT = 'Choose a template to get started';
 export const DOWNLOAD_PDF_TEXT = 'Download PDF';
 
+// ─── Document Type Tabs ───
+export const DOC_TYPE_PRESCRIPTION = 'Prescription';
+export const DOC_TYPE_OPD_NOTE = 'OPD Note';
+export const OPD_GEN_TITLE = 'Select OPD Note Template';
+export const OPD_GEN_SUBTITLE =
+	'Choose a template and download your OPD note as PDF';
+export const SELECT_OPD_TEMPLATE_TEXT = 'Choose an OPD note template to get started';
+
+// ─── OPD Section Labels ───
+export const LABEL_VITAL_SIGNS = 'Vital Signs';
+export const LABEL_HISTORY_OF_PRESENT_ILLNESS = 'History of Present Illness';
+export const LABEL_PHYSICAL_EXAMINATION = 'Physical Examination';
+export const LABEL_PAST_MEDICAL_HISTORY = 'Past Medical History';
+export const LABEL_TREATMENT_PLAN = 'Treatment Plan / Medications';
+
 // ─── AI Analysis ───
 export const ANALYSIS_PANEL_TITLE = 'AI Clinical Analysis';
 export const ANALYSIS_PANEL_SUBTITLE =
@@ -58,6 +73,10 @@ export const SECTION_EXTRACTED_ENTITIES = 'Extracted Entities';
 export const SECTION_CLINICAL_DATA = 'Clinical Data';
 export const SECTION_MEDICATIONS = 'Medications';
 export const SECTION_EVIDENCE_NOTES = 'Evidence & Guidelines';
+export const SHOW_SOURCE_TEXT = 'Show Source';
+export const HIDE_SOURCE_TEXT = 'Hide Source';
+export const RAG_SOURCE_HEADER = 'Knowledge Base Source';
+export const RAG_SOURCE_EMPTY = 'No source passages available for this item.';
 
 export const LABEL_PATIENT_NAME = 'Patient Name';
 export const LABEL_AGE = 'Age';

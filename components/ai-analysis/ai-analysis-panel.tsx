@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { useAiAnalysis } from './use-ai-analysis';
+import { useAiAnalysis, type ExtendedClinicalData } from './use-ai-analysis';
 import type { PrescriptionData, ConsultationSegment } from '@/types/clinical-analysis';
 import {
   ANALYSIS_PANEL_TITLE,
@@ -46,6 +46,10 @@ import {
   NO_SAFETY_ALERTS,
   CRITICAL_ALERTS_BLOCK,
   TOOLTIP_CLOSE,
+  SHOW_SOURCE_TEXT,
+  HIDE_SOURCE_TEXT,
+  RAG_SOURCE_HEADER,
+  RAG_SOURCE_EMPTY,
 } from '@/constants/ui-strings';
 import styles from './ai-analysis-panel.module.css';
 
@@ -54,7 +58,7 @@ interface AiAnalysisPanelProps {
   segments: ConsultationSegment[];
   mode: 'dictation' | 'consultation';
   onClose: () => void;
-  onProceedToGeneration: (prescriptionData: PrescriptionData) => void;
+  onProceedToGeneration: (prescriptionData: PrescriptionData, extendedData: ExtendedClinicalData) => void;
 }
 
 export default function AiAnalysisPanel({
@@ -75,11 +79,13 @@ export default function AiAnalysisPanel({
     updateMedication,
     acknowledgeSafetyAlert,
     getPrescriptionData,
+    getExtendedClinicalData,
     clearAnalysis,
   } = useAiAnalysis();
 
   const [showEntities, setShowEntities] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
+  const [expandedSourceIdx, setExpandedSourceIdx] = useState<number | null>(null);
 
   // Auto-analyze on mount
   const [hasStarted, setHasStarted] = useState(false);
@@ -97,10 +103,11 @@ export default function AiAnalysisPanel({
 
   const handleProceed = useCallback(() => {
     const data = getPrescriptionData();
+    const extended = getExtendedClinicalData();
     if (data) {
-      onProceedToGeneration(data);
+      onProceedToGeneration(data, extended || {});
     }
-  }, [getPrescriptionData, onProceedToGeneration]);
+  }, [getPrescriptionData, getExtendedClinicalData, onProceedToGeneration]);
 
   const handleReanalyze = useCallback(() => {
     clearAnalysis();
@@ -469,7 +476,34 @@ export default function AiAnalysisPanel({
                   <div className={styles.evidenceList}>
                     {editedResult.evidenceNotes.map((note, idx) => (
                       <div key={idx} className={styles.evidenceItem}>
-                        {note}
+                        <div className={styles.evidenceItemRow}>
+                          <span className={styles.evidenceItemText}>{note}</span>
+                          <button
+                            className={styles.evidenceButton}
+                            onClick={() => setExpandedSourceIdx(expandedSourceIdx === idx ? null : idx)}
+                          >
+                            {expandedSourceIdx === idx ? HIDE_SOURCE_TEXT : SHOW_SOURCE_TEXT}
+                          </button>
+                        </div>
+                        {expandedSourceIdx === idx && (
+                          <div className={styles.sourcePanel}>
+                            <div className={styles.sourcePanelHeader}>{RAG_SOURCE_HEADER}</div>
+                            <div className={styles.sourcePanelBody}>
+                              {editedResult.ragSourceChunks && editedResult.ragSourceChunks.length > 0 ? (
+                                editedResult.ragSourceChunks.map((chunk, cIdx) => (
+                                  <div key={cIdx} className={styles.sourceChunk}>
+                                    <div className={styles.sourceChunkText}>{chunk.text}</div>
+                                    {chunk.sourceUri && (
+                                      <div className={styles.sourceChunkUri}>{chunk.sourceUri}</div>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className={styles.sourceEmpty}>{RAG_SOURCE_EMPTY}</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

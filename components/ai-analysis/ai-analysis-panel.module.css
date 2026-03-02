@@ -414,10 +414,129 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evidenceItemRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.evidenceItemText {
+  flex: 1;
+}
+
+/* Show Source Button */
+.evidenceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 6px;
+  padding: 3px 10px;
+  color: rgba(253, 224, 71, 0.85);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.evidenceButton:hover {
+  background: rgba(251, 191, 36, 0.2);
+  color: rgba(253, 224, 71, 1);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+/* Source Panel (expandable under evidence item) */
+.sourcePanel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  animation: sourceFadeIn 0.15s ease;
+}
+
+.sourcePanelHeader {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(253, 224, 71, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sourcePanelBody {
+  padding: 10px 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sourceChunk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sourceChunk:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sourceChunkText {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.55;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid rgba(251, 191, 36, 0.4);
+  border-radius: 0 6px 6px 0;
+}
+
+.sourceChunkUri {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 13px;
+}
+
+.sourceEmpty {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+  font-style: italic;
+}
+
+@keyframes sourceFadeIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 400px;
+  }
 }
 
 /* Actions */

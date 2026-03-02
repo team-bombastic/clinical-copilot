@@ -1,7 +1,7 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import {
   BedrockAgentRuntimeClient,
-  RetrieveAndGenerateCommand,
+  RetrieveCommand,
 } from '@aws-sdk/client-bedrock-agent-runtime';
 
 // Static imports — esbuild bundles these into the output
@@ -14,13 +14,13 @@ import brandGenericMappingData from './safety-rules/brand-generic-mapping.json';
 // ─── Constants ───
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || 'us-east-1';
+const KNOWLEDGE_BASE_REGION = process.env.KNOWLEDGE_BASE_REGION || process.env.AWS_REGION || 'ap-south-1';
 const KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID || '';
 const MODEL_ID = 'amazon.nova-pro-v1:0';
-const RAG_MODEL_ARN = `arn:aws:bedrock:${BEDROCK_REGION}::foundation-model/${MODEL_ID}`;
 const MAX_TOKENS = 4096;
 
 const bedrock = new BedrockRuntimeClient({ region: BEDROCK_REGION });
-const bedrockAgent = new BedrockAgentRuntimeClient({ region: BEDROCK_REGION });
+const bedrockAgent = new BedrockAgentRuntimeClient({ region: KNOWLEDGE_BASE_REGION });
 
 // ─── Types ───
 
@@ -77,6 +77,11 @@ interface VitalSigns {
   bmi?: string;
 }
 
+interface RagSourceChunk {
+  text: string;
+  sourceUri?: string;
+}
+
 interface ClinicalAnalysisResult {
   patientName?: string;
   age?: string;
@@ -96,6 +101,7 @@ interface ClinicalAnalysisResult {
   medicalHistory?: string[];
   clinicalSummary?: string;
   evidenceNotes?: string[];
+  ragSourceChunks?: RagSourceChunk[];
   safetyAlerts: SafetyAlert[];
 }
 
@@ -280,6 +286,7 @@ async function structureWithRAG(
   demographics: Record<string, string | null>
 ): Promise<Partial<ClinicalAnalysisResult>> {
   let ragContext = '';
+  const ragSourceChunks: RagSourceChunk[] = [];
 
   // Query Knowledge Base if configured
   if (KNOWLEDGE_BASE_ID) {
@@ -292,19 +299,28 @@ async function structureWithRAG(
       const ragQuery = `Indian clinical guidelines for: ${entitySummary}. Include NLEM status, ICD-10 codes, and ICMR standard treatment guidelines.`;
 
       const ragResponse = await bedrockAgent.send(
-        new RetrieveAndGenerateCommand({
-          input: { text: ragQuery },
-          retrieveAndGenerateConfiguration: {
-            type: 'KNOWLEDGE_BASE',
-            knowledgeBaseConfiguration: {
-              knowledgeBaseId: KNOWLEDGE_BASE_ID,
-              modelArn: RAG_MODEL_ARN,
+        new RetrieveCommand({
+          knowledgeBaseId: KNOWLEDGE_BASE_ID,
+          retrievalQuery: { text: ragQuery },
+          retrievalConfiguration: {
+            vectorSearchConfiguration: {
+              numberOfResults: 10,
             },
           },
         })
       );
 
-      ragContext = ragResponse.output?.text || '';
+      // Extract retrieved chunks and build RAG context for the structuring prompt
+      if (ragResponse.retrievalResults) {
+        for (const result of ragResponse.retrievalResults) {
+          const text = result.content?.text;
+          if (text) {
+            const sourceUri = result.location?.s3Location?.uri || undefined;
+            ragSourceChunks.push({ text, sourceUri });
+            ragContext += text + '\n\n';
+          }
+        }
+      }
     } catch (err) {
       console.warn('RAG query failed, proceeding without KB context:', err);
     }
@@ -367,6 +383,7 @@ async function structureWithRAG(
     medicalHistory: structured.medicalHistory || [],
     clinicalSummary: structured.clinicalSummary || undefined,
     evidenceNotes: structured.evidenceNotes || [],
+    ragSourceChunks: ragSourceChunks.length > 0 ? ragSourceChunks : undefined,
   };
 }
 

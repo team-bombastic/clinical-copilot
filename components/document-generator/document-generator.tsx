@@ -2,17 +2,25 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { PRESCRIPTION_TEMPLATES } from './prescription-templates';
+import { OPD_TEMPLATES } from './opd-templates';
 import PrescriptionTemplateRenderer, {
   templateRenderers,
   DEFAULT_DOCTOR_INFO,
   type DoctorInfo,
 } from './prescription-template-renderer';
-import { PDF_FILENAME_PREFIX } from '@/constants/config';
+import OpdTemplateRenderer, { opdTemplateRenderers } from './opd-template-renderer';
+import { PDF_FILENAME_PREFIX, OPD_PDF_FILENAME_PREFIX } from '@/constants/config';
+import type { OpdNoteData, VitalSigns } from '@/types/clinical-analysis';
 import {
   DOC_GEN_TITLE,
   DOC_GEN_SUBTITLE,
+  OPD_GEN_TITLE,
+  OPD_GEN_SUBTITLE,
   DOWNLOAD_PDF_TEXT,
   SELECT_TEMPLATE_TEXT,
+  SELECT_OPD_TEMPLATE_TEXT,
+  DOC_TYPE_PRESCRIPTION,
+  DOC_TYPE_OPD_NOTE,
   TOOLTIP_CLOSE,
   TOOLTIP_DOWNLOAD_PDF,
 } from '@/constants/ui-strings';
@@ -44,6 +52,8 @@ interface PrescriptionData {
   followUp?: string;
 }
 
+type DocumentType = 'prescription' | 'opd';
+
 interface DocumentGeneratorProps {
   transcription: string;
   segments: ConsultationSegment[];
@@ -51,6 +61,10 @@ interface DocumentGeneratorProps {
   onClose: () => void;
   onBackToAnalysis?: () => void;
   prescriptionData?: PrescriptionData;
+  vitalSigns?: VitalSigns;
+  allergies?: string[];
+  medicalHistory?: string[];
+  clinicalSummary?: string;
 }
 
 const DOCTOR_FIELDS: { key: keyof DoctorInfo; label: string }[] = [
@@ -68,7 +82,12 @@ export default function DocumentGenerator({
   onClose,
   onBackToAnalysis,
   prescriptionData,
+  vitalSigns,
+  allergies,
+  medicalHistory,
+  clinicalSummary,
 }: DocumentGeneratorProps) {
+  const [documentType, setDocumentType] = useState<DocumentType>('prescription');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,8 +95,28 @@ export default function DocumentGenerator({
   const [showDoctorEditor, setShowDoctorEditor] = useState(false);
   const templateRef = useRef<HTMLDivElement>(null);
 
+  const isOpd = documentType === 'opd';
+  const templates = isOpd ? OPD_TEMPLATES : PRESCRIPTION_TEMPLATES;
+  const title = isOpd ? OPD_GEN_TITLE : DOC_GEN_TITLE;
+  const subtitle = isOpd ? OPD_GEN_SUBTITLE : DOC_GEN_SUBTITLE;
+  const selectText = isOpd ? SELECT_OPD_TEMPLATE_TEXT : SELECT_TEMPLATE_TEXT;
+  const filenamePrefix = isOpd ? OPD_PDF_FILENAME_PREFIX : PDF_FILENAME_PREFIX;
+
+  const opdNoteData: OpdNoteData = {
+    ...prescriptionData,
+    vitalSigns,
+    allergies,
+    medicalHistory,
+    clinicalSummary,
+  };
+
   const updateDoctorField = useCallback((key: keyof DoctorInfo, value: string) => {
     setDoctorInfo((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleDocTypeChange = useCallback((type: DocumentType) => {
+    setDocumentType(type);
+    setSelectedTemplate(null);
   }, []);
 
   const handleDownloadPdf = useCallback(async () => {
@@ -90,11 +129,11 @@ export default function DocumentGenerator({
       const html2canvas = (await import('html2canvas')).default;
       const { jsPDF } = await import('jspdf');
 
-      const render = templateRenderers[selectedTemplate];
+      const render = isOpd
+        ? opdTemplateRenderers[selectedTemplate]
+        : templateRenderers[selectedTemplate];
       if (!render) throw new Error('Template not found');
 
-      // Zero-size clip container keeps the element in the DOM (capturable by html2canvas)
-      // but completely invisible — no flash behind the modal.
       const clip = document.createElement('div');
       clip.style.position = 'fixed';
       clip.style.left = '0';
@@ -107,33 +146,35 @@ export default function DocumentGenerator({
       const wrapper = document.createElement('div');
       wrapper.style.width = '794px';
       wrapper.style.background = '#fff';
-      wrapper.innerHTML = render(prescriptionData || {}, doctorInfo);
+      wrapper.innerHTML = isOpd
+        ? render(opdNoteData, doctorInfo)
+        : render(prescriptionData || {}, doctorInfo);
 
       clip.appendChild(wrapper);
       document.body.appendChild(clip);
 
-      // Capture to canvas — html2canvas reads computed styles from the DOM even inside overflow:hidden
       const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, width: 794 });
       document.body.removeChild(clip);
 
-      // Place canvas image onto A4 portrait PDF
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = 210; // A4 width in mm
-      const pageH = 297; // A4 height in mm
+      const pageW = 210;
+      const pageH = 297;
       const imgW = pageW;
       const imgH = (canvas.height * pageW) / canvas.width;
       pdf.addImage(imgData, 'JPEG', 0, 0, imgW, Math.min(imgH, pageH));
-      pdf.save(`${PDF_FILENAME_PREFIX}-${Date.now()}.pdf`);
+      pdf.save(`${filenamePrefix}-${Date.now()}.pdf`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate PDF');
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, prescriptionData, doctorInfo]);
+  }, [selectedTemplate, prescriptionData, opdNoteData, doctorInfo, isOpd, filenamePrefix]);
 
   const previewHtml = selectedTemplate
-    ? templateRenderers[selectedTemplate]?.(prescriptionData || {}, doctorInfo) || ''
+    ? isOpd
+      ? opdTemplateRenderers[selectedTemplate]?.(opdNoteData, doctorInfo) || ''
+      : templateRenderers[selectedTemplate]?.(prescriptionData || {}, doctorInfo) || ''
     : '';
 
   return (
@@ -150,8 +191,8 @@ export default function DocumentGenerator({
                 Back to Analysis
               </button>
             )}
-            <h2 className={styles.title}>{DOC_GEN_TITLE}</h2>
-            <p className={styles.subtitle}>{DOC_GEN_SUBTITLE}</p>
+            <h2 className={styles.title}>{title}</h2>
+            <p className={styles.subtitle}>{subtitle}</p>
           </div>
           <button onClick={onClose} className={styles.closeButton} title={TOOLTIP_CLOSE}>
             <svg
@@ -170,12 +211,26 @@ export default function DocumentGenerator({
           </button>
         </div>
 
-        {/* Template Selector */}
+        {/* Document Type Tabs + Template Selector */}
         {!selectedTemplate && (
           <div className={styles.templateSection}>
-            <p className={styles.sectionLabel}>{SELECT_TEMPLATE_TEXT}</p>
+            <div className={styles.docTypeTabs}>
+              <button
+                className={`${styles.docTypeTab} ${!isOpd ? styles.docTypeTabActive : ''}`}
+                onClick={() => handleDocTypeChange('prescription')}
+              >
+                {DOC_TYPE_PRESCRIPTION}
+              </button>
+              <button
+                className={`${styles.docTypeTab} ${isOpd ? styles.docTypeTabActive : ''}`}
+                onClick={() => handleDocTypeChange('opd')}
+              >
+                {DOC_TYPE_OPD_NOTE}
+              </button>
+            </div>
+            <p className={styles.sectionLabel}>{selectText}</p>
             <div className={styles.templateGrid}>
-              {PRESCRIPTION_TEMPLATES.map((tmpl) => (
+              {templates.map((tmpl) => (
                 <button
                   key={tmpl.id}
                   onClick={() => setSelectedTemplate(tmpl.id)}
@@ -267,12 +322,21 @@ export default function DocumentGenerator({
             </div>
 
             {/* Hidden render target for PDF */}
-            <PrescriptionTemplateRenderer
-              ref={templateRef}
-              templateId={selectedTemplate}
-              prescriptionData={prescriptionData}
-              doctorInfo={doctorInfo}
-            />
+            {isOpd ? (
+              <OpdTemplateRenderer
+                ref={templateRef}
+                templateId={selectedTemplate}
+                opdNoteData={opdNoteData}
+                doctorInfo={doctorInfo}
+              />
+            ) : (
+              <PrescriptionTemplateRenderer
+                ref={templateRef}
+                templateId={selectedTemplate}
+                prescriptionData={prescriptionData}
+                doctorInfo={doctorInfo}
+              />
+            )}
 
             {/* Actions */}
             <div className={styles.resultActions}>

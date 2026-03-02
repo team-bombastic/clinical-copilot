@@ -1,5 +1,8 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cdk from 'aws-cdk-lib';
+import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { storage } from './storage/resource';
@@ -111,11 +114,56 @@ prescriptionFn.addToRolePolicy(
   })
 );
 
-// Bedrock permissions for ai-analysis Lambda
+// -- Knowledge Base Stack --
+const kbStack = backend.createStack('KnowledgeBaseStack');
+
+const kbDocsBucket = new s3.Bucket(kbStack, 'KBDocsBucket', {
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+  autoDeleteObjects: true,
+});
+
+const knowledgeBase = new bedrock.VectorKnowledgeBase(kbStack, 'ClinicalKB', {
+  embeddingsModel: bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V2_1024,
+  instruction:
+    'Contains Indian medical reference documents including NLEM 2022, ICMR Standard Treatment Workflows, National Formulary of India, NHM Standard Treatment Guidelines, and ICMR Antimicrobial Resistance Guidelines. Use for clinical decision support, drug formulary lookups, and evidence-based treatment recommendations.',
+});
+
+const kbDataSource = new bedrock.S3DataSource(kbStack, 'KBDataSource', {
+  bucket: kbDocsBucket,
+  knowledgeBase,
+  chunkingStrategy: bedrock.ChunkingStrategy.fixedSize({
+    maxTokens: 500,
+    overlapPercentage: 20,
+  }),
+});
+
+// Grant the KB role read access to the docs bucket
+kbDocsBucket.grantRead(knowledgeBase.role);
+
+// Grant the authenticated (SSO) user read-write access so scripts can upload docs
+kbDocsBucket.grantReadWrite(authenticatedRole);
+
+// Also allow the Amplify deployer / SSO role to manage the bucket contents
+kbDocsBucket.addToResourcePolicy(
+  new PolicyStatement({
+    actions: ['s3:ListBucket', 's3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+    resources: [kbDocsBucket.bucketArn, `${kbDocsBucket.bucketArn}/*`],
+    principals: [new cdk.aws_iam.AccountRootPrincipal()],
+  })
+);
+
+// Bedrock permissions for ai-analysis Lambda (scoped to specific KB)
 analysisFn.addToRolePolicy(
   new PolicyStatement({
-    actions: ['bedrock:InvokeModel', 'bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
+    actions: ['bedrock:InvokeModel'],
     resources: ['*'],
+  })
+);
+
+analysisFn.addToRolePolicy(
+  new PolicyStatement({
+    actions: ['bedrock:Retrieve'],
+    resources: [knowledgeBase.knowledgeBaseArn],
   })
 );
 
@@ -125,13 +173,16 @@ bucket.grantRead(analysisFn);
 // Pass env vars to ai-analysis Lambda
 backend.aiAnalysis.addEnvironment('STORAGE_BUCKET_NAME', bucket.bucketName);
 backend.aiAnalysis.addEnvironment('BEDROCK_REGION', 'us-east-1');
-backend.aiAnalysis.addEnvironment('KNOWLEDGE_BASE_ID', process.env.KNOWLEDGE_BASE_ID || '');
+backend.aiAnalysis.addEnvironment('KNOWLEDGE_BASE_ID', knowledgeBase.knowledgeBaseId);
 
-// Export the Lambda function names so the client can reference them
+// Export the Lambda function names + KB outputs so the client and scripts can reference them
 backend.addOutput({
   custom: {
     batchTranscribeFunctionName: batchFn.functionName,
     generatePrescriptionFunctionName: prescriptionFn.functionName,
     aiAnalysisFunctionName: analysisFn.functionName,
+    kbDocsBucketName: kbDocsBucket.bucketName,
+    knowledgeBaseId: knowledgeBase.knowledgeBaseId,
+    kbDataSourceId: kbDataSource.dataSourceId,
   },
 });

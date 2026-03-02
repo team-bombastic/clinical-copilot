@@ -13,9 +13,18 @@ import {
 import type {
   ClinicalAnalysisResult,
   Medication,
+  OpdNoteData,
   PrescriptionData,
   ConsultationSegment,
+  VitalSigns,
 } from '@/types/clinical-analysis';
+
+export interface ExtendedClinicalData {
+  vitalSigns?: VitalSigns;
+  allergies?: string[];
+  medicalHistory?: string[];
+  clinicalSummary?: string;
+}
 
 export interface UseAiAnalysisReturn {
   isAnalyzing: boolean;
@@ -36,6 +45,7 @@ export interface UseAiAnalysisReturn {
   updateMedication: (index: number, updates: Partial<Medication>) => void;
   acknowledgeSafetyAlert: (alertId: string) => void;
   getPrescriptionData: () => PrescriptionData | null;
+  getExtendedClinicalData: () => ExtendedClinicalData | null;
   clearAnalysis: () => void;
 }
 
@@ -211,6 +221,16 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
     };
   }, [editedResult]);
 
+  const getExtendedClinicalData = useCallback((): ExtendedClinicalData | null => {
+    if (!editedResult) return null;
+    return {
+      vitalSigns: editedResult.vitalSigns,
+      allergies: editedResult.allergies,
+      medicalHistory: editedResult.medicalHistory,
+      clinicalSummary: editedResult.clinicalSummary,
+    };
+  }, [editedResult]);
+
   const clearAnalysis = useCallback(() => {
     setAnalysisResult(null);
     setEditedResult(null);
@@ -229,6 +249,7 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
     updateMedication,
     acknowledgeSafetyAlert,
     getPrescriptionData,
+    getExtendedClinicalData,
     clearAnalysis,
   };
 }
