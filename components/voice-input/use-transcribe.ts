@@ -61,15 +61,20 @@ export function useTranscribe(): UseTranscribeReturn {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const stoppedRef = useRef(false);
+  const lastLangRef = useRef<string>('en-IN');
 
   const stopRecording = useCallback(() => {
     stoppedRef.current = true;
     setIsRecording(false);
 
-    // Promote any remaining partial transcript into the finalized transcript
+    // Promote any remaining partial transcript into finalized transcript + segments
     setPartialTranscript((partial) => {
       if (partial.trim()) {
-        setTranscript((prev) => (prev ? prev + ' ' + partial.trim() : partial.trim()));
+        const cleaned = cleanTranscript(partial);
+        if (cleaned) {
+          setTranscript((prev) => (prev ? prev + ' ' + cleaned : cleaned));
+          setSegments((prev) => [...prev, { text: cleaned, languageCode: lastLangRef.current }]);
+        }
       }
       return '';
     });
@@ -196,6 +201,7 @@ export function useTranscribe(): UseTranscribeReturn {
                 const lang = result.LanguageCode || 'en-IN';
 
                 if (result.LanguageCode) {
+                  lastLangRef.current = result.LanguageCode;
                   setDetectedLanguage(result.LanguageCode);
                 }
 
@@ -227,7 +233,9 @@ export function useTranscribe(): UseTranscribeReturn {
         }
       } finally {
         setIsConnecting(false);
-        stopRecording();
+        if (!stoppedRef.current) {
+          stopRecording();
+        }
       }
     },
     [stopRecording]

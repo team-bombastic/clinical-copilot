@@ -30,6 +30,7 @@ export interface UseBatchTranscribeReturn {
   stopRecording: () => void;
   clearTranscript: () => void;
   setTranscript: React.Dispatch<React.SetStateAction<string>>;
+  setTranslatedText: React.Dispatch<React.SetStateAction<string>>;
   setSegments: React.Dispatch<React.SetStateAction<ConsultationSegment[]>>;
 }
 
@@ -195,6 +196,7 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
     stopRecording,
     clearTranscript,
     setTranscript,
+    setTranslatedText,
     setSegments,
   };
 }

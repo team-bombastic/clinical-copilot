@@ -2,6 +2,8 @@ import { defineBackend } from '@aws-amplify/backend';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cdk from 'aws-cdk-lib';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
@@ -9,6 +11,7 @@ import { storage } from './storage/resource';
 import { batchTranscribe } from './functions/batch-transcribe/resource';
 import { generatePrescription } from './functions/generate-prescription/resource';
 import { aiAnalysis } from './functions/ai-analysis/resource';
+import { cleanupUnconfirmed } from './functions/cleanup-unconfirmed/resource';
 
 const backend = defineBackend({
   auth,
@@ -17,6 +20,7 @@ const backend = defineBackend({
   batchTranscribe,
   generatePrescription,
   aiAnalysis,
+  cleanupUnconfirmed,
 });
 
 // -- Authenticated user policies (streaming transcribe + translate) --
@@ -174,6 +178,28 @@ bucket.grantRead(analysisFn);
 backend.aiAnalysis.addEnvironment('STORAGE_BUCKET_NAME', bucket.bucketName);
 backend.aiAnalysis.addEnvironment('BEDROCK_REGION', 'us-east-1');
 backend.aiAnalysis.addEnvironment('KNOWLEDGE_BASE_ID', knowledgeBase.knowledgeBaseId);
+
+// -- Cleanup Unconfirmed Users Lambda (scheduled every minute) --
+const cleanupFn = backend.cleanupUnconfirmed.resources.lambda;
+const userPoolId = backend.auth.resources.userPool.userPoolId;
+
+backend.cleanupUnconfirmed.addEnvironment('USER_POOL_ID', userPoolId);
+
+cleanupFn.addToRolePolicy(
+  new PolicyStatement({
+    actions: [
+      'cognito-idp:ListUsers',
+      'cognito-idp:AdminDeleteUser',
+    ],
+    resources: [backend.auth.resources.userPool.userPoolArn],
+  })
+);
+
+const cleanupScheduleStack = backend.createStack('CleanupScheduleStack');
+const rule = new events.Rule(cleanupScheduleStack, 'CleanupUnconfirmedRule', {
+  schedule: events.Schedule.rate(cdk.Duration.minutes(1)),
+});
+rule.addTarget(new targets.LambdaFunction(cleanupFn));
 
 // Export the Lambda function names + KB outputs so the client and scripts can reference them
 backend.addOutput({

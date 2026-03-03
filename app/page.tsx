@@ -1,11 +1,14 @@
 'use client';
 
-import { useAuthenticator } from '@aws-amplify/ui-react';
+import { signOut } from 'aws-amplify/auth';
 import VoiceInput from '@/components/voice-input/voice-input';
 import styles from './page.module.css';
 
 export default function Home() {
-  const { signOut } = useAuthenticator();
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.reload();
+  };
 
   return (
     <div className={styles.page}>
@@ -15,7 +18,7 @@ export default function Home() {
 
         <VoiceInput />
 
-        <button onClick={signOut} className={styles.signOutLink}>
+        <button onClick={handleSignOut} className={styles.signOutLink}>
           Sign out
         </button>
       </div>

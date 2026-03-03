@@ -155,7 +155,7 @@ export default function VoiceInput() {
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    debounceRef.current = setTimeout(async () => {
+    const runTranslation = async () => {
       const requestId = ++lastRequestRef.current;
       setIsTranslating(true);
       setTranslateError(null);
@@ -174,12 +174,20 @@ export default function VoiceInput() {
           setIsTranslating(false);
         }
       }
-    }, TRANSLATION_DEBOUNCE_MS);
+    };
+
+    // When recording is active, debounce to reduce API calls.
+    // When recording has stopped, translate immediately with final segments.
+    if (streaming.isRecording) {
+      debounceRef.current = setTimeout(runTranslation, TRANSLATION_DEBOUNCE_MS);
+    } else {
+      runTranslation();
+    }
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [streaming.segments, hasHindi, isStreaming]);
+  }, [streaming.segments, hasHindi, isStreaming, streaming.isRecording]);
 
   const clearAllState = useCallback(() => {
     streaming.clearTranscript();
@@ -513,7 +521,18 @@ export default function VoiceInput() {
             <span className={styles.translationLabel}>{TRANSLATION_SECTION_LABEL}</span>
             {isTranslationLoading && <span className={styles.translatingDot} />}
           </div>
-          <div className={styles.translationText}>{translationContent || TRANSLATING_FALLBACK}</div>
+          <textarea
+            value={translationContent || (isTranslationLoading ? TRANSLATING_FALLBACK : '')}
+            onChange={(e) => {
+              if (isStreaming) {
+                setEnglishTranslation(e.target.value);
+              } else {
+                batch.setTranslatedText(e.target.value);
+              }
+            }}
+            className={styles.translationTextarea}
+            rows={4}
+          />
         </div>
       )}
 
