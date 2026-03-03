@@ -52,8 +52,10 @@ function PhoneAuthUI({ onAuthenticated }: { onAuthenticated: () => void }) {
 				},
 			});
 
+			console.log('signIn nextStep:', JSON.stringify(nextStep));
 			setMode('signIn');
-			if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE') {
+			if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE'
+				|| nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_OTP') {
 				setStep('otp');
 			}
 		} catch (err: unknown) {

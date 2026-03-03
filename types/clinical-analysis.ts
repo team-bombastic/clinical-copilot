@@ -113,7 +113,7 @@ export interface OpdNoteData extends PrescriptionData {
   clinicalSummary?: string;
 }
 
-// ─── PrescriptionData (matches existing shape in generate-prescription) ───
+// ─── PrescriptionData ───
 
 export interface PrescriptionData {
   patientName?: string;
