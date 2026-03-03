@@ -86,35 +86,53 @@ async function translateSegments(segments: TranscriptSegment[]): Promise<string>
     },
   });
 
-  const separator = ' | ';
-  const hindiTexts = hindiSegments.map((s) => s.text);
-  const joinedHindi = hindiTexts.join(separator);
+  const allHindi = hindiSegments.length === segments.length;
 
-  const response = await client.send(
-    new TranslateTextCommand({
-      Text: joinedHindi,
-      SourceLanguageCode: 'hi',
-      TargetLanguageCode: 'en',
+  if (allHindi) {
+    // All segments are Hindi — translate the full text as one block for accuracy
+    const fullText = segments.map((s) => s.text).join(' ');
+    const response = await client.send(
+      new TranslateTextCommand({
+        Text: fullText,
+        SourceLanguageCode: 'hi',
+        TargetLanguageCode: 'en',
+      })
+    );
+    return response.TranslatedText || fullText;
+  }
+
+  // Mixed language — translate consecutive Hindi groups as blocks, preserve English as-is
+  type Group = { lang: 'hi' | 'en'; texts: string[] };
+  const groups: Group[] = [];
+  for (const seg of segments) {
+    const isHindi = seg.languageCode.startsWith('hi');
+    const groupLang = isHindi ? 'hi' : 'en';
+    const last = groups[groups.length - 1];
+    if (last && last.lang === groupLang) {
+      last.texts.push(seg.text);
+    } else {
+      groups.push({ lang: groupLang, texts: [seg.text] });
+    }
+  }
+
+  const translatedGroups = await Promise.all(
+    groups.map(async (group) => {
+      if (group.lang === 'en') {
+        return group.texts.join(' ');
+      }
+      const text = group.texts.join(' ');
+      const response = await client.send(
+        new TranslateTextCommand({
+          Text: text,
+          SourceLanguageCode: 'hi',
+          TargetLanguageCode: 'en',
+        })
+      );
+      return response.TranslatedText || text;
     })
   );
 
-  const translatedParts = (response.TranslatedText || '').split(separator);
-
-  const translationMap = new Map<string, string>();
-  hindiSegments.forEach((seg, i) => {
-    translationMap.set(seg.text, translatedParts[i]?.trim() || seg.text);
-  });
-
-  const result = segments
-    .map((seg) => {
-      if (seg.languageCode.startsWith('hi')) {
-        return translationMap.get(seg.text) || seg.text;
-      }
-      return seg.text;
-    })
-    .join(' ');
-
-  return result;
+  return translatedGroups.join(' ');
 }
 
 export default function VoiceInput() {
@@ -155,6 +173,9 @@ export default function VoiceInput() {
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
+    // Translate immediately when not recording (final pass), debounce while recording
+    const delay = streaming.isRecording ? TRANSLATION_DEBOUNCE_MS : 0;
+
     debounceRef.current = setTimeout(async () => {
       const requestId = ++lastRequestRef.current;
       setIsTranslating(true);
@@ -174,12 +195,12 @@ export default function VoiceInput() {
           setIsTranslating(false);
         }
       }
-    }, TRANSLATION_DEBOUNCE_MS);
+    }, delay);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [streaming.segments, hasHindi, isStreaming]);
+  }, [streaming.segments, hasHindi, isStreaming, streaming.isRecording]);
 
   const clearAllState = useCallback(() => {
     streaming.clearTranscript();
@@ -513,7 +534,18 @@ export default function VoiceInput() {
             <span className={styles.translationLabel}>{TRANSLATION_SECTION_LABEL}</span>
             {isTranslationLoading && <span className={styles.translatingDot} />}
           </div>
-          <div className={styles.translationText}>{translationContent || TRANSLATING_FALLBACK}</div>
+          <textarea
+            value={translationContent || TRANSLATING_FALLBACK}
+            onChange={(e) => {
+              if (isStreaming) {
+                setEnglishTranslation(e.target.value);
+              } else {
+                batch.setTranslatedText(e.target.value);
+              }
+            }}
+            className={styles.translationTextarea}
+            rows={4}
+          />
         </div>
       )}
 
@@ -527,7 +559,7 @@ export default function VoiceInput() {
       {/* AI Analysis Panel — stays mounted while doc generator is open so state is preserved */}
       {showAnalysis && (
         <AiAnalysisPanel
-          transcription={currentTranscript}
+          transcription={translationContent || currentTranscript}
           segments={batch.segments}
           mode={isConsultation ? 'consultation' : 'dictation'}
           onClose={() => {
@@ -553,7 +585,7 @@ export default function VoiceInput() {
       {/* Document Generator Modal — renders on top of the analysis panel */}
       {showDocumentGenerator && (
         <DocumentGenerator
-          transcription={currentTranscript}
+          transcription={translationContent || currentTranscript}
           segments={batch.segments}
           mode={isConsultation ? 'consultation' : 'dictation'}
           onClose={() => {

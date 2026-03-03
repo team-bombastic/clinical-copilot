@@ -2,7 +2,7 @@
 
 import { Amplify } from 'aws-amplify';
 import outputs from '@/amplify_outputs.json';
-import { Authenticator, ThemeProvider, Theme } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider, Theme, TextField } from '@aws-amplify/ui-react';
 
 Amplify.configure(outputs, { ssr: true });
 
@@ -18,12 +18,14 @@ const theme: Theme = {
         primary: { value: 'rgba(255,255,255,0.12)' },
         secondary: { value: 'rgba(255,255,255,0.08)' },
         focus: { value: 'rgba(165,180,252,0.6)' },
+        error: { value: 'rgba(251,146,60,0.5)' },
       },
       font: {
         primary: { value: 'rgba(255,255,255,0.95)' },
         secondary: { value: 'rgba(255,255,255,0.6)' },
         tertiary: { value: 'rgba(255,255,255,0.4)' },
         interactive: { value: 'rgba(199,210,254,0.9)' },
+        error: { value: 'rgba(251,191,146,0.95)' },
       },
     },
     radii: {
@@ -86,6 +88,13 @@ const theme: Theme = {
           borderColor: { value: 'rgba(165,180,252,0.5)' },
           boxShadow: { value: '0 0 0 3px rgba(165,180,252,0.12)' },
         },
+        _error: {
+          borderColor: { value: 'rgba(251,146,60,0.5)' },
+          color: { value: 'rgba(255,255,255,0.95)' },
+          _focus: {
+            boxShadow: { value: '0 0 0 2px rgba(251,146,60,0.15)' },
+          },
+        },
       },
     },
   },
@@ -98,6 +107,22 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
         passwordless={{
           preferredAuthMethod: 'EMAIL_OTP',
           hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
+        }}
+        components={{
+          SignUp: {
+            FormFields() {
+              return (
+                <TextField
+                  name="email"
+                  label="Email"
+                  placeholder="Enter your email"
+                  type="email"
+                  isRequired
+                  autoComplete="email"
+                />
+              );
+            },
+          },
         }}
       >
         {children}
