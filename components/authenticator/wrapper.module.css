@@ -5,7 +5,19 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  font-family: "InterVariable", "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Oxygen, Ubuntu, Cantarell, "Open Sans", sans-serif;
+  font-family:
+    'InterVariable',
+    'Inter var',
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Helvetica Neue',
+    'Segoe UI',
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    sans-serif;
   background:
     radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.35), transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(30, 58, 138, 0.4), transparent 55%),
@@ -94,7 +106,10 @@
   color: rgba(255, 255, 255, 0.95);
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .input::placeholder {
@@ -197,5 +212,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

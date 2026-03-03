@@ -178,9 +178,7 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
       if (!prev || !prev.medications) return prev;
       return {
         ...prev,
-        medications: prev.medications.map((med, i) =>
-          i === index ? { ...med, ...updates } : med
-        ),
+        medications: prev.medications.map((med, i) => (i === index ? { ...med, ...updates } : med)),
       };
     });
   }, []);

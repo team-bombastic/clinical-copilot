@@ -98,7 +98,7 @@ export default function PdfPreview({ pdfBase64 }: PdfPreviewProps) {
     if (!viewportRef.current || !naturalWidth) return;
     const containerWidth = viewportRef.current.clientWidth - 48; // minus padding
     const fitScale = containerWidth / naturalWidth;
-    setZoom(Math.max(ZOOM_MIN, Math.min(+(fitScale).toFixed(2), ZOOM_MAX)));
+    setZoom(Math.max(ZOOM_MIN, Math.min(+fitScale.toFixed(2), ZOOM_MAX)));
   }, [naturalWidth]);
 
   const zoomPercent = Math.round(zoom * 100);
@@ -124,9 +124,7 @@ export default function PdfPreview({ pdfBase64 }: PdfPreviewProps) {
           </svg>
           <span className={styles.toolbarLabel}>
             Preview
-            {pageCount > 0 && (
-              <span className={styles.pageCount}>{pageCount} pg</span>
-            )}
+            {pageCount > 0 && <span className={styles.pageCount}>{pageCount} pg</span>}
           </span>
         </div>
 
@@ -137,16 +135,20 @@ export default function PdfPreview({ pdfBase64 }: PdfPreviewProps) {
             disabled={zoom <= ZOOM_MIN}
             title="Zoom out"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
 
-          <button
-            onClick={handleZoomReset}
-            className={styles.zoomBadge}
-            title="Reset to 100%"
-          >
+          <button onClick={handleZoomReset} className={styles.zoomBadge} title="Reset to 100%">
             {zoomPercent}%
           </button>
 
@@ -156,7 +158,15 @@ export default function PdfPreview({ pdfBase64 }: PdfPreviewProps) {
             disabled={zoom >= ZOOM_MAX}
             title="Zoom in"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
@@ -164,19 +174,23 @@ export default function PdfPreview({ pdfBase64 }: PdfPreviewProps) {
 
           <div className={styles.separator} />
 
-          <button
-            onClick={handleFitWidth}
-            className={styles.controlBtn}
-            title="Fit to width"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={handleFitWidth} className={styles.controlBtn} title="Fit to width">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="15 3 21 3 21 9" />
               <polyline points="9 21 3 21 3 15" />
               <line x1="21" y1="3" x2="14" y2="10" />
               <line x1="3" y1="21" x2="10" y2="14" />
             </svg>
           </button>
-
         </div>
       </div>
 

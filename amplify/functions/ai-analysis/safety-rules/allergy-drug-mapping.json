@@ -40,14 +40,7 @@
     "etoricoxib",
     "celecoxib"
   ],
-  "aspirin": [
-    "aspirin",
-    "ibuprofen",
-    "diclofenac",
-    "naproxen",
-    "aceclofenac",
-    "mefenamic acid"
-  ],
+  "aspirin": ["aspirin", "ibuprofen", "diclofenac", "naproxen", "aceclofenac", "mefenamic acid"],
   "fluoroquinolone": [
     "ciprofloxacin",
     "levofloxacin",
@@ -56,45 +49,12 @@
     "moxifloxacin",
     "gatifloxacin"
   ],
-  "macrolide": [
-    "azithromycin",
-    "erythromycin",
-    "clarithromycin",
-    "roxithromycin"
-  ],
-  "tetracycline": [
-    "doxycycline",
-    "tetracycline",
-    "minocycline"
-  ],
-  "aminoglycoside": [
-    "gentamicin",
-    "amikacin",
-    "tobramycin",
-    "streptomycin"
-  ],
-  "statin": [
-    "atorvastatin",
-    "rosuvastatin",
-    "simvastatin",
-    "pravastatin",
-    "fluvastatin"
-  ],
-  "ace inhibitor": [
-    "enalapril",
-    "ramipril",
-    "lisinopril",
-    "perindopril",
-    "captopril"
-  ],
-  "arb": [
-    "telmisartan",
-    "losartan",
-    "valsartan",
-    "olmesartan",
-    "irbesartan",
-    "candesartan"
-  ],
+  "macrolide": ["azithromycin", "erythromycin", "clarithromycin", "roxithromycin"],
+  "tetracycline": ["doxycycline", "tetracycline", "minocycline"],
+  "aminoglycoside": ["gentamicin", "amikacin", "tobramycin", "streptomycin"],
+  "statin": ["atorvastatin", "rosuvastatin", "simvastatin", "pravastatin", "fluvastatin"],
+  "ace inhibitor": ["enalapril", "ramipril", "lisinopril", "perindopril", "captopril"],
+  "arb": ["telmisartan", "losartan", "valsartan", "olmesartan", "irbesartan", "candesartan"],
   "beta blocker": [
     "atenolol",
     "metoprolol",
@@ -111,14 +71,7 @@
     "nitrazepam",
     "midazolam"
   ],
-  "opioid": [
-    "tramadol",
-    "morphine",
-    "fentanyl",
-    "codeine",
-    "pethidine",
-    "buprenorphine"
-  ],
+  "opioid": ["tramadol", "morphine", "fentanyl", "codeine", "pethidine", "buprenorphine"],
   "insulin": [
     "insulin regular",
     "insulin nph",
@@ -127,13 +80,7 @@
     "insulin lispro",
     "insulin degludec"
   ],
-  "iodine": [
-    "povidone iodine",
-    "amiodarone",
-    "iodinated contrast"
-  ],
+  "iodine": ["povidone iodine", "amiodarone", "iodinated contrast"],
   "latex": [],
-  "egg": [
-    "propofol"
-  ]
+  "egg": ["propofol"]
 }

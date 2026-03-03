@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { PRESCRIPTION_TEMPLATES } from './prescription-templates';
 import { OPD_TEMPLATES } from './opd-templates';
 import PrescriptionTemplateRenderer, {
@@ -11,19 +12,6 @@ import PrescriptionTemplateRenderer, {
 import OpdTemplateRenderer, { opdTemplateRenderers } from './opd-template-renderer';
 import { PDF_FILENAME_PREFIX, OPD_PDF_FILENAME_PREFIX } from '@/constants/config';
 import type { OpdNoteData, VitalSigns } from '@/types/clinical-analysis';
-import {
-  DOC_GEN_TITLE,
-  DOC_GEN_SUBTITLE,
-  OPD_GEN_TITLE,
-  OPD_GEN_SUBTITLE,
-  DOWNLOAD_PDF_TEXT,
-  SELECT_TEMPLATE_TEXT,
-  SELECT_OPD_TEMPLATE_TEXT,
-  DOC_TYPE_PRESCRIPTION,
-  DOC_TYPE_OPD_NOTE,
-  TOOLTIP_CLOSE,
-  TOOLTIP_DOWNLOAD_PDF,
-} from '@/constants/ui-strings';
 import styles from './document-generator.module.css';
 
 interface ConsultationSegment {
@@ -67,17 +55,6 @@ interface DocumentGeneratorProps {
   clinicalSummary?: string;
 }
 
-const DOCTOR_FIELDS: { key: keyof DoctorInfo; label: string }[] = [
-  { key: 'name', label: 'Doctor Name' },
-  { key: 'specialty', label: 'Specialty' },
-  { key: 'tagline', label: 'Qualifications / Reg. No.' },
-  { key: 'clinic', label: 'Clinic / Hospital' },
-  { key: 'phone', label: 'Phone' },
-  { key: 'email', label: 'Email' },
-  { key: 'website', label: 'Website' },
-  { key: 'address', label: 'Clinic Address' },
-];
-
 export default function DocumentGenerator({
   onClose,
   onBackToAnalysis,
@@ -87,6 +64,21 @@ export default function DocumentGenerator({
   medicalHistory,
   clinicalSummary,
 }: DocumentGeneratorProps) {
+  const t = useTranslations('docGenerator');
+  const tTooltips = useTranslations('tooltips');
+  const tErrors = useTranslations('errors');
+
+  const DOCTOR_FIELDS: { key: keyof DoctorInfo; label: string }[] = [
+    { key: 'name', label: t('doctorName') },
+    { key: 'specialty', label: t('specialty') },
+    { key: 'tagline', label: t('qualifications') },
+    { key: 'clinic', label: t('clinicHospital') },
+    { key: 'phone', label: t('phone') },
+    { key: 'email', label: t('email') },
+    { key: 'website', label: t('website') },
+    { key: 'address', label: t('clinicAddress') },
+  ];
+
   const [documentType, setDocumentType] = useState<DocumentType>('prescription');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -97,9 +89,9 @@ export default function DocumentGenerator({
 
   const isOpd = documentType === 'opd';
   const templates = isOpd ? OPD_TEMPLATES : PRESCRIPTION_TEMPLATES;
-  const title = isOpd ? OPD_GEN_TITLE : DOC_GEN_TITLE;
-  const subtitle = isOpd ? OPD_GEN_SUBTITLE : DOC_GEN_SUBTITLE;
-  const selectText = isOpd ? SELECT_OPD_TEMPLATE_TEXT : SELECT_TEMPLATE_TEXT;
+  const title = isOpd ? t('opdTitle') : t('title');
+  const subtitle = isOpd ? t('opdSubtitle') : t('subtitle');
+  const selectText = isOpd ? t('selectOpdTemplate') : t('selectTemplate');
   const filenamePrefix = isOpd ? OPD_PDF_FILENAME_PREFIX : PDF_FILENAME_PREFIX;
 
   const opdNoteData: OpdNoteData = {
@@ -132,7 +124,7 @@ export default function DocumentGenerator({
       const render = isOpd
         ? opdTemplateRenderers[selectedTemplate]
         : templateRenderers[selectedTemplate];
-      if (!render) throw new Error('Template not found');
+      if (!render) throw new Error(tErrors('templateNotFound'));
 
       const clip = document.createElement('div');
       clip.style.position = 'fixed';
@@ -165,11 +157,11 @@ export default function DocumentGenerator({
       pdf.addImage(imgData, 'JPEG', 0, 0, imgW, Math.min(imgH, pageH));
       pdf.save(`${filenamePrefix}-${Date.now()}.pdf`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate PDF');
+      setError(err instanceof Error ? err.message : tErrors('failedToGeneratePdf'));
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedTemplate, prescriptionData, opdNoteData, doctorInfo, isOpd, filenamePrefix]);
+  }, [selectedTemplate, prescriptionData, opdNoteData, doctorInfo, isOpd, filenamePrefix, tErrors]);
 
   const previewHtml = selectedTemplate
     ? isOpd
@@ -185,16 +177,25 @@ export default function DocumentGenerator({
           <div className={styles.headerLeft}>
             {onBackToAnalysis && !selectedTemplate && (
               <button onClick={onBackToAnalysis} className={styles.backButton}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
-                Back to Analysis
+                {t('backToAnalysis')}
               </button>
             )}
             <h2 className={styles.title}>{title}</h2>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
-          <button onClick={onClose} className={styles.closeButton} title={TOOLTIP_CLOSE}>
+          <button onClick={onClose} className={styles.closeButton} title={tTooltips('close')}>
             <svg
               width="20"
               height="20"
@@ -219,13 +220,13 @@ export default function DocumentGenerator({
                 className={`${styles.docTypeTab} ${!isOpd ? styles.docTypeTabActive : ''}`}
                 onClick={() => handleDocTypeChange('prescription')}
               >
-                {DOC_TYPE_PRESCRIPTION}
+                {t('typePrescription')}
               </button>
               <button
                 className={`${styles.docTypeTab} ${isOpd ? styles.docTypeTabActive : ''}`}
                 onClick={() => handleDocTypeChange('opd')}
               >
-                {DOC_TYPE_OPD_NOTE}
+                {t('typeOpdNote')}
               </button>
             </div>
             <p className={styles.sectionLabel}>{selectText}</p>
@@ -236,10 +237,7 @@ export default function DocumentGenerator({
                   onClick={() => setSelectedTemplate(tmpl.id)}
                   className={styles.templateCard}
                 >
-                  <div
-                    className={styles.templateThumb}
-                    style={{ background: tmpl.thumbnailColor }}
-                  >
+                  <div className={styles.templateThumb} style={{ background: tmpl.thumbnailColor }}>
                     <svg
                       width="28"
                       height="28"
@@ -273,15 +271,21 @@ export default function DocumentGenerator({
         {selectedTemplate && (
           <div className={styles.resultsSection}>
             {/* Doctor Info Editor Toggle */}
-            <button
-              onClick={() => setShowDoctorEditor((p) => !p)}
-              className={styles.editorToggle}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <button onClick={() => setShowDoctorEditor((p) => !p)} className={styles.editorToggle}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              {showDoctorEditor ? 'Hide' : 'Edit'} Doctor / Clinic Details
+              {showDoctorEditor ? t('hideDoctorDetails') : t('editDoctorDetails')}
               <svg
                 width="14"
                 height="14"
@@ -291,7 +295,10 @@ export default function DocumentGenerator({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ transform: showDoctorEditor ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                style={{
+                  transform: showDoctorEditor ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                }}
               >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
@@ -340,23 +347,20 @@ export default function DocumentGenerator({
 
             {/* Actions */}
             <div className={styles.resultActions}>
-              <button
-                onClick={() => setSelectedTemplate(null)}
-                className={styles.regenerateButton}
-              >
-                ← Choose different template
+              <button onClick={() => setSelectedTemplate(null)} className={styles.regenerateButton}>
+                {t('chooseDifferentTemplate')}
               </button>
               <button
                 onClick={handleDownloadPdf}
                 disabled={isGenerating}
                 className={styles.downloadButton}
-                title={TOOLTIP_DOWNLOAD_PDF}
+                title={tTooltips('downloadPdf')}
               >
                 <span className={styles.buttonContent}>
                   {isGenerating ? (
                     <>
                       <span className={styles.spinnerSmall} />
-                      Generating PDF...
+                      {t('generatingPdf')}
                     </>
                   ) : (
                     <>
@@ -374,7 +378,7 @@ export default function DocumentGenerator({
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
-                      {DOWNLOAD_PDF_TEXT}
+                      {t('downloadPdf')}
                     </>
                   )}
                 </span>

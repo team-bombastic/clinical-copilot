@@ -171,7 +171,9 @@
     0 2px 16px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.04);
   background: #fff;
-  transition: width 0.15s ease, height 0.15s ease;
+  transition:
+    width 0.15s ease,
+    height 0.15s ease;
 }
 
 /* ─── Loading State ─── */

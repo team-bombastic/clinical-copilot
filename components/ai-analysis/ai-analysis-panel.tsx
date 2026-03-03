@@ -1,56 +1,9 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAiAnalysis, type ExtendedClinicalData } from './use-ai-analysis';
 import type { PrescriptionData, ConsultationSegment } from '@/types/clinical-analysis';
-import {
-  ANALYSIS_PANEL_TITLE,
-  ANALYSIS_PANEL_SUBTITLE,
-  ANALYZING_TEXT,
-  PROCEED_TO_GENERATION_TEXT,
-  REANALYZE_TEXT,
-  BACK_TO_TRANSCRIPT_TEXT,
-  SECTION_SAFETY_ALERTS,
-  SECTION_EXTRACTED_ENTITIES,
-  SECTION_CLINICAL_DATA,
-  SECTION_MEDICATIONS,
-  SECTION_EVIDENCE_NOTES,
-  LABEL_PATIENT_NAME,
-  LABEL_AGE,
-  LABEL_SEX,
-  LABEL_DATE,
-  LABEL_ADDRESS,
-  LABEL_CHIEF_COMPLAINTS,
-  LABEL_DIAGNOSIS,
-  LABEL_INVESTIGATIONS,
-  LABEL_INSTRUCTIONS,
-  LABEL_FOLLOW_UP,
-  LABEL_ALLERGIES,
-  LABEL_MEDICAL_HISTORY,
-  LABEL_CLINICAL_SUMMARY,
-  LABEL_DRUG_NAME,
-  LABEL_GENERIC_NAME,
-  LABEL_DOSAGE,
-  LABEL_FREQUENCY,
-  LABEL_DURATION,
-  LABEL_ROUTE,
-  LABEL_MED_INSTRUCTIONS,
-  LABEL_NLEM,
-  ADD_MEDICATION_TEXT,
-  REMOVE_MEDICATION_TEXT,
-  ACKNOWLEDGE_TEXT,
-  ACKNOWLEDGED_TEXT,
-  ALERT_CRITICAL,
-  ALERT_WARNING,
-  ALERT_INFO,
-  NO_SAFETY_ALERTS,
-  CRITICAL_ALERTS_BLOCK,
-  TOOLTIP_CLOSE,
-  SHOW_SOURCE_TEXT,
-  HIDE_SOURCE_TEXT,
-  RAG_SOURCE_HEADER,
-  RAG_SOURCE_EMPTY,
-} from '@/constants/ui-strings';
 import styles from './ai-analysis-panel.module.css';
 
 interface AiAnalysisPanelProps {
@@ -58,7 +11,10 @@ interface AiAnalysisPanelProps {
   segments: ConsultationSegment[];
   mode: 'dictation' | 'consultation';
   onClose: () => void;
-  onProceedToGeneration: (prescriptionData: PrescriptionData, extendedData: ExtendedClinicalData) => void;
+  onProceedToGeneration: (
+    prescriptionData: PrescriptionData,
+    extendedData: ExtendedClinicalData
+  ) => void;
 }
 
 export default function AiAnalysisPanel({
@@ -68,6 +24,10 @@ export default function AiAnalysisPanel({
   onClose,
   onProceedToGeneration,
 }: AiAnalysisPanelProps) {
+  const t = useTranslations('aiAnalysis');
+  const tLabels = useTranslations('labels');
+  const tTooltips = useTranslations('tooltips');
+
   const {
     isAnalyzing,
     editedResult,
@@ -96,9 +56,7 @@ export default function AiAnalysisPanel({
 
   const hasCriticalUnacknowledged = useMemo(() => {
     if (!editedResult) return false;
-    return editedResult.safetyAlerts.some(
-      (a) => a.severity === 'critical' && !a.acknowledged
-    );
+    return editedResult.safetyAlerts.some((a) => a.severity === 'critical' && !a.acknowledged);
   }, [editedResult]);
 
   const handleProceed = useCallback(() => {
@@ -120,9 +78,9 @@ export default function AiAnalysisPanel({
   }, [clearAnalysis, onClose]);
 
   const severityLabel = (s: string) => {
-    if (s === 'critical') return ALERT_CRITICAL;
-    if (s === 'warning') return ALERT_WARNING;
-    return ALERT_INFO;
+    if (s === 'critical') return t('alertCritical');
+    if (s === 'warning') return t('alertWarning');
+    return t('alertInfo');
   };
 
   const severityStyle = (s: string) => {
@@ -143,11 +101,20 @@ export default function AiAnalysisPanel({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <h2 className={styles.title}>{ANALYSIS_PANEL_TITLE}</h2>
-            <p className={styles.subtitle}>{ANALYSIS_PANEL_SUBTITLE}</p>
+            <h2 className={styles.title}>{t('panelTitle')}</h2>
+            <p className={styles.subtitle}>{t('panelSubtitle')}</p>
           </div>
-          <button onClick={handleClose} className={styles.closeButton} title={TOOLTIP_CLOSE}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={handleClose} className={styles.closeButton} title={tTooltips('close')}>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -158,7 +125,7 @@ export default function AiAnalysisPanel({
         {isAnalyzing && (
           <div className={styles.loadingContainer}>
             <span className={styles.spinner} />
-            <span className={styles.loadingText}>{ANALYZING_TEXT}</span>
+            <span className={styles.loadingText}>{t('analyzingText')}</span>
           </div>
         )}
 
@@ -170,13 +137,16 @@ export default function AiAnalysisPanel({
           <>
             {/* Safety Alerts */}
             <div className={styles.section}>
-              <h3 className={styles.sectionHeader}>{SECTION_SAFETY_ALERTS}</h3>
+              <h3 className={styles.sectionHeader}>{t('sectionSafetyAlerts')}</h3>
               {editedResult.safetyAlerts.length === 0 ? (
-                <p className={styles.noAlerts}>{NO_SAFETY_ALERTS}</p>
+                <p className={styles.noAlerts}>{t('noSafetyAlerts')}</p>
               ) : (
                 <div className={styles.alertsContainer}>
                   {editedResult.safetyAlerts.map((alert) => (
-                    <div key={alert.id} className={`${styles.alertCard} ${severityStyle(alert.severity)}`}>
+                    <div
+                      key={alert.id}
+                      className={`${styles.alertCard} ${severityStyle(alert.severity)}`}
+                    >
                       <div className={styles.alertContent}>
                         <span className={`${styles.alertBadge} ${badgeStyle(alert.severity)}`}>
                           {severityLabel(alert.severity)}
@@ -191,12 +161,12 @@ export default function AiAnalysisPanel({
                         className={`${styles.acknowledgeButton} ${alert.acknowledged ? styles.acknowledgedButton : ''}`}
                         disabled={alert.acknowledged}
                       >
-                        {alert.acknowledged ? ACKNOWLEDGED_TEXT : ACKNOWLEDGE_TEXT}
+                        {alert.acknowledged ? t('acknowledged') : t('acknowledge')}
                       </button>
                     </div>
                   ))}
                   {hasCriticalUnacknowledged && (
-                    <p className={styles.criticalBlock}>{CRITICAL_ALERTS_BLOCK}</p>
+                    <p className={styles.criticalBlock}>{t('criticalAlertsBlock')}</p>
                   )}
                 </div>
               )}
@@ -205,21 +175,20 @@ export default function AiAnalysisPanel({
             {/* Clinical Summary */}
             {editedResult.clinicalSummary && (
               <div className={styles.section}>
-                <h3 className={styles.sectionHeader}>{LABEL_CLINICAL_SUMMARY}</h3>
+                <h3 className={styles.sectionHeader}>{tLabels('clinicalSummary')}</h3>
                 <div className={styles.summaryText}>{editedResult.clinicalSummary}</div>
               </div>
             )}
 
             {/* Extracted Entities (collapsible) */}
             <div className={styles.section}>
-              <h3
-                className={styles.sectionHeader}
-                onClick={() => setShowEntities(!showEntities)}
-              >
-                <span className={`${styles.sectionHeaderToggle} ${showEntities ? styles.sectionHeaderToggleOpen : ''}`}>
+              <h3 className={styles.sectionHeader} onClick={() => setShowEntities(!showEntities)}>
+                <span
+                  className={`${styles.sectionHeaderToggle} ${showEntities ? styles.sectionHeaderToggleOpen : ''}`}
+                >
                   &#9654;
                 </span>
-                {SECTION_EXTRACTED_ENTITIES} ({editedResult.extractedEntities.length})
+                {t('sectionExtractedEntities')} ({editedResult.extractedEntities.length})
               </h3>
               {showEntities && (
                 <div className={styles.entitiesGrid}>
@@ -238,10 +207,10 @@ export default function AiAnalysisPanel({
 
             {/* Structured Data Editor */}
             <div className={styles.section}>
-              <h3 className={styles.sectionHeader}>{SECTION_CLINICAL_DATA}</h3>
+              <h3 className={styles.sectionHeader}>{t('sectionClinicalData')}</h3>
               <div className={styles.formGrid}>
                 <div className={styles.formField}>
-                  <label className={styles.formLabel}>{LABEL_PATIENT_NAME}</label>
+                  <label className={styles.formLabel}>{tLabels('patientName')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.patientName || ''}
@@ -249,7 +218,7 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={styles.formField}>
-                  <label className={styles.formLabel}>{LABEL_AGE}</label>
+                  <label className={styles.formLabel}>{tLabels('age')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.age || ''}
@@ -257,7 +226,7 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={styles.formField}>
-                  <label className={styles.formLabel}>{LABEL_SEX}</label>
+                  <label className={styles.formLabel}>{tLabels('sex')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.sex || ''}
@@ -265,7 +234,7 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={styles.formField}>
-                  <label className={styles.formLabel}>{LABEL_DATE}</label>
+                  <label className={styles.formLabel}>{tLabels('date')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.date || ''}
@@ -273,7 +242,7 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_ADDRESS}</label>
+                  <label className={styles.formLabel}>{tLabels('address')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.address || ''}
@@ -281,21 +250,24 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_CHIEF_COMPLAINTS}</label>
+                  <label className={styles.formLabel}>{tLabels('chiefComplaints')}</label>
                   <textarea
                     className={styles.formTextarea}
                     value={(editedResult.chiefComplaints || []).join(', ')}
                     onChange={(e) =>
                       updateField(
                         'chiefComplaints',
-                        e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                        e.target.value
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       )
                     }
                     rows={2}
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_DIAGNOSIS}</label>
+                  <label className={styles.formLabel}>{tLabels('diagnosis')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.diagnosis || ''}
@@ -303,63 +275,75 @@ export default function AiAnalysisPanel({
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_ALLERGIES}</label>
+                  <label className={styles.formLabel}>{tLabels('allergies')}</label>
                   <textarea
                     className={styles.formTextarea}
                     value={(editedResult.allergies || []).join(', ')}
                     onChange={(e) =>
                       updateField(
                         'allergies',
-                        e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                        e.target.value
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       )
                     }
                     rows={1}
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_MEDICAL_HISTORY}</label>
+                  <label className={styles.formLabel}>{tLabels('medicalHistory')}</label>
                   <textarea
                     className={styles.formTextarea}
                     value={(editedResult.medicalHistory || []).join(', ')}
                     onChange={(e) =>
                       updateField(
                         'medicalHistory',
-                        e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                        e.target.value
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       )
                     }
                     rows={1}
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_INVESTIGATIONS}</label>
+                  <label className={styles.formLabel}>{tLabels('investigations')}</label>
                   <textarea
                     className={styles.formTextarea}
                     value={(editedResult.investigations || []).join(', ')}
                     onChange={(e) =>
                       updateField(
                         'investigations',
-                        e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                        e.target.value
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       )
                     }
                     rows={1}
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_INSTRUCTIONS}</label>
+                  <label className={styles.formLabel}>{tLabels('instructions')}</label>
                   <textarea
                     className={styles.formTextarea}
                     value={(editedResult.instructions || []).join(', ')}
                     onChange={(e) =>
                       updateField(
                         'instructions',
-                        e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                        e.target.value
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       )
                     }
                     rows={2}
                   />
                 </div>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
-                  <label className={styles.formLabel}>{LABEL_FOLLOW_UP}</label>
+                  <label className={styles.formLabel}>{tLabels('followUp')}</label>
                   <input
                     className={styles.formInput}
                     value={editedResult.followUp || ''}
@@ -371,19 +355,19 @@ export default function AiAnalysisPanel({
 
             {/* Medications */}
             <div className={styles.section}>
-              <h3 className={styles.sectionHeader}>{SECTION_MEDICATIONS}</h3>
+              <h3 className={styles.sectionHeader}>{t('sectionMedications')}</h3>
               <div className={styles.medicationsWrapper}>
                 <table className={styles.medicationsTable}>
                   <thead>
                     <tr>
-                      <th>{LABEL_DRUG_NAME}</th>
-                      <th>{LABEL_GENERIC_NAME}</th>
-                      <th>{LABEL_DOSAGE}</th>
-                      <th>{LABEL_FREQUENCY}</th>
-                      <th>{LABEL_DURATION}</th>
-                      <th>{LABEL_ROUTE}</th>
-                      <th>{LABEL_MED_INSTRUCTIONS}</th>
-                      <th>{LABEL_NLEM}</th>
+                      <th>{tLabels('drugName')}</th>
+                      <th>{tLabels('genericName')}</th>
+                      <th>{tLabels('dosage')}</th>
+                      <th>{tLabels('frequency')}</th>
+                      <th>{tLabels('duration')}</th>
+                      <th>{tLabels('route')}</th>
+                      <th>{tLabels('medInstructions')}</th>
+                      <th>{tLabels('nlem')}</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -436,18 +420,18 @@ export default function AiAnalysisPanel({
                           <input
                             className={styles.medInput}
                             value={med.instructions || ''}
-                            onChange={(e) => updateMedication(idx, { instructions: e.target.value })}
+                            onChange={(e) =>
+                              updateMedication(idx, { instructions: e.target.value })
+                            }
                           />
                         </td>
-                        <td>
-                          {med.nlemMatch && <span className={styles.nlemBadge}>NLEM</span>}
-                        </td>
+                        <td>{med.nlemMatch && <span className={styles.nlemBadge}>NLEM</span>}</td>
                         <td>
                           <button
                             className={styles.removeMedButton}
                             onClick={() => removeMedication(idx)}
                           >
-                            {REMOVE_MEDICATION_TEXT}
+                            {t('removeMedication')}
                           </button>
                         </td>
                       </tr>
@@ -456,21 +440,20 @@ export default function AiAnalysisPanel({
                 </table>
               </div>
               <button className={styles.addMedButton} onClick={addMedication}>
-                + {ADD_MEDICATION_TEXT}
+                + {t('addMedication')}
               </button>
             </div>
 
             {/* Evidence Notes (collapsible) */}
             {editedResult.evidenceNotes && editedResult.evidenceNotes.length > 0 && (
               <div className={styles.section}>
-                <h3
-                  className={styles.sectionHeader}
-                  onClick={() => setShowEvidence(!showEvidence)}
-                >
-                  <span className={`${styles.sectionHeaderToggle} ${showEvidence ? styles.sectionHeaderToggleOpen : ''}`}>
+                <h3 className={styles.sectionHeader} onClick={() => setShowEvidence(!showEvidence)}>
+                  <span
+                    className={`${styles.sectionHeaderToggle} ${showEvidence ? styles.sectionHeaderToggleOpen : ''}`}
+                  >
                     &#9654;
                   </span>
-                  {SECTION_EVIDENCE_NOTES}
+                  {t('sectionEvidenceNotes')}
                 </h3>
                 {showEvidence && (
                   <div className={styles.evidenceList}>
@@ -480,16 +463,19 @@ export default function AiAnalysisPanel({
                           <span className={styles.evidenceItemText}>{note}</span>
                           <button
                             className={styles.evidenceButton}
-                            onClick={() => setExpandedSourceIdx(expandedSourceIdx === idx ? null : idx)}
+                            onClick={() =>
+                              setExpandedSourceIdx(expandedSourceIdx === idx ? null : idx)
+                            }
                           >
-                            {expandedSourceIdx === idx ? HIDE_SOURCE_TEXT : SHOW_SOURCE_TEXT}
+                            {expandedSourceIdx === idx ? t('hideSource') : t('showSource')}
                           </button>
                         </div>
                         {expandedSourceIdx === idx && (
                           <div className={styles.sourcePanel}>
-                            <div className={styles.sourcePanelHeader}>{RAG_SOURCE_HEADER}</div>
+                            <div className={styles.sourcePanelHeader}>{t('ragSourceHeader')}</div>
                             <div className={styles.sourcePanelBody}>
-                              {editedResult.ragSourceChunks && editedResult.ragSourceChunks.length > 0 ? (
+                              {editedResult.ragSourceChunks &&
+                              editedResult.ragSourceChunks.length > 0 ? (
                                 editedResult.ragSourceChunks.map((chunk, cIdx) => (
                                   <div key={cIdx} className={styles.sourceChunk}>
                                     <div className={styles.sourceChunkText}>{chunk.text}</div>
@@ -499,7 +485,7 @@ export default function AiAnalysisPanel({
                                   </div>
                                 ))
                               ) : (
-                                <p className={styles.sourceEmpty}>{RAG_SOURCE_EMPTY}</p>
+                                <p className={styles.sourceEmpty}>{t('ragSourceEmpty')}</p>
                               )}
                             </div>
                           </div>
@@ -514,18 +500,18 @@ export default function AiAnalysisPanel({
             {/* Actions */}
             <div className={styles.actionsRow}>
               <button className={styles.backButton} onClick={handleClose}>
-                {BACK_TO_TRANSCRIPT_TEXT}
+                {t('backToTranscript')}
               </button>
               <div className={styles.actionsRight}>
                 <button className={styles.reanalyzeButton} onClick={handleReanalyze}>
-                  {REANALYZE_TEXT}
+                  {t('reanalyze')}
                 </button>
                 <button
                   className={`${styles.proceedButton} ${hasCriticalUnacknowledged ? styles.proceedButtonDisabled : ''}`}
                   onClick={handleProceed}
                   disabled={hasCriticalUnacknowledged}
                 >
-                  {PROCEED_TO_GENERATION_TEXT}
+                  {t('proceedToGeneration')}
                 </button>
               </div>
             </div>

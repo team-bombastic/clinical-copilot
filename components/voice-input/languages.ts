@@ -7,7 +7,12 @@ export interface LanguageOption {
 }
 
 export const LANGUAGES: LanguageOption[] = [
-  { code: 'auto', label: 'Auto-detect (English/Hindi)', mode: 'streaming', multiLanguageSupported: true },
+  {
+    code: 'auto',
+    label: 'Auto-detect (English/Hindi)',
+    mode: 'streaming',
+    multiLanguageSupported: true,
+  },
   { code: 'en-IN', label: 'English', mode: 'streaming', multiLanguageSupported: true },
   { code: 'hi-IN', label: 'Hindi', mode: 'streaming', multiLanguageSupported: true },
   { code: 'ta-IN', label: 'Tamil', mode: 'batch', multiLanguageSupported: true },

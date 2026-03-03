@@ -1,8 +1,5 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
-import {
-  BedrockAgentRuntimeClient,
-  RetrieveCommand,
-} from '@aws-sdk/client-bedrock-agent-runtime';
+import { BedrockAgentRuntimeClient, RetrieveCommand } from '@aws-sdk/client-bedrock-agent-runtime';
 
 // Static imports — esbuild bundles these into the output
 import drugInteractionsData from './safety-rules/drug-interactions.json';
@@ -14,7 +11,8 @@ import brandGenericMappingData from './safety-rules/brand-generic-mapping.json';
 // ─── Constants ───
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION || 'us-east-1';
-const KNOWLEDGE_BASE_REGION = process.env.KNOWLEDGE_BASE_REGION || process.env.AWS_REGION || 'ap-south-1';
+const KNOWLEDGE_BASE_REGION =
+  process.env.KNOWLEDGE_BASE_REGION || process.env.AWS_REGION || 'ap-south-1';
 const KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID || '';
 const MODEL_ID = 'amazon.nova-pro-v1:0';
 const MAX_TOKENS = 4096;
@@ -362,19 +360,17 @@ async function structureWithRAG(
     chiefComplaints: structured.chiefComplaints || [],
     diagnosis: structured.diagnosis || undefined,
     differentialDiagnosis: structured.differentialDiagnosis || [],
-    medications: (structured.medications || []).map(
-      (med: Record<string, string | undefined>) => ({
-        name: med.name || med.genericName || '',
-        genericName: med.genericName || resolveGenericName(med.name || ''),
-        brandName: med.brandName || undefined,
-        dosage: med.dosage || '',
-        frequency: med.frequency || '',
-        duration: med.duration || '',
-        route: med.route || 'oral',
-        instructions: med.instructions || undefined,
-        nlemMatch: false, // Will be set during safety validation
-      })
-    ),
+    medications: (structured.medications || []).map((med: Record<string, string | undefined>) => ({
+      name: med.name || med.genericName || '',
+      genericName: med.genericName || resolveGenericName(med.name || ''),
+      brandName: med.brandName || undefined,
+      dosage: med.dosage || '',
+      frequency: med.frequency || '',
+      duration: med.duration || '',
+      route: med.route || 'oral',
+      instructions: med.instructions || undefined,
+      nlemMatch: false, // Will be set during safety validation
+    })),
     investigations: structured.investigations || [],
     instructions: structured.instructions || [],
     followUp: structured.followUp || undefined,
@@ -389,9 +385,7 @@ async function structureWithRAG(
 
 // ─── Phase 3: Safety Validation ───
 
-function validateSafety(
-  result: Partial<ClinicalAnalysisResult>
-): SafetyAlert[] {
+function validateSafety(result: Partial<ClinicalAnalysisResult>): SafetyAlert[] {
   const alerts: SafetyAlert[] = [];
   let alertId = 0;
 

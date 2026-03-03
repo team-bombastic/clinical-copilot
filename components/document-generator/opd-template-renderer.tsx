@@ -7,53 +7,59 @@ import { DEFAULT_DOCTOR_INFO } from './prescription-template-renderer';
 import type { OpdNoteData } from '@/types/clinical-analysis';
 
 interface Props {
-	templateId: string;
-	opdNoteData?: OpdNoteData;
-	doctorInfo?: DoctorInfo;
+  templateId: string;
+  opdNoteData?: OpdNoteData;
+  doctorInfo?: DoctorInfo;
 }
 
 const d = (val: string | undefined, fallback: string) => val || fallback;
 const today = () =>
-	new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 const timeNow = () =>
-	new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
 function vitalsGrid(data: OpdNoteData, bgColor: string, borderColor: string, labelColor: string) {
-	const v = data.vitalSigns;
-	if (!v) return '';
-	const cells = [
-		{ label: 'BP', val: v.bloodPressure },
-		{ label: 'Pulse', val: v.pulse },
-		{ label: 'Temp', val: v.temperature },
-		{ label: 'RR', val: v.respiratoryRate },
-		{ label: 'SpO2', val: v.spO2 },
-		{ label: 'Weight', val: v.weight },
-		{ label: 'Height', val: v.height },
-		{ label: 'BMI', val: v.bmi },
-	].filter((c) => c.val);
-	if (cells.length === 0) return '';
-	return `<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
-		<tr>${cells.map((c) => `<td style="padding:6px 8px;border:1px solid ${borderColor};background:${bgColor};text-align:center;font-size:10px;">
+  const v = data.vitalSigns;
+  if (!v) return '';
+  const cells = [
+    { label: 'BP', val: v.bloodPressure },
+    { label: 'Pulse', val: v.pulse },
+    { label: 'Temp', val: v.temperature },
+    { label: 'RR', val: v.respiratoryRate },
+    { label: 'SpO2', val: v.spO2 },
+    { label: 'Weight', val: v.weight },
+    { label: 'Height', val: v.height },
+    { label: 'BMI', val: v.bmi },
+  ].filter((c) => c.val);
+  if (cells.length === 0) return '';
+  return `<table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+		<tr>${cells
+      .map(
+        (
+          c
+        ) => `<td style="padding:6px 8px;border:1px solid ${borderColor};background:${bgColor};text-align:center;font-size:10px;">
 			<div style="font-weight:700;color:${labelColor};text-transform:uppercase;font-size:9px;letter-spacing:0.3px;">${c.label}</div>
 			<div style="font-size:12px;font-weight:600;margin-top:2px;">${c.val}</div>
-		</td>`).join('')}</tr>
+		</td>`
+      )
+      .join('')}</tr>
 	</table>`;
 }
 
 function vitalsInline(data: OpdNoteData) {
-	const v = data.vitalSigns;
-	if (!v) return '—';
-	const items = [
-		v.bloodPressure && `BP: ${v.bloodPressure}`,
-		v.pulse && `P: ${v.pulse}`,
-		v.temperature && `T: ${v.temperature}`,
-		v.respiratoryRate && `RR: ${v.respiratoryRate}`,
-		v.spO2 && `SpO2: ${v.spO2}`,
-		v.weight && `Wt: ${v.weight}`,
-		v.height && `Ht: ${v.height}`,
-		v.bmi && `BMI: ${v.bmi}`,
-	].filter(Boolean);
-	return items.length > 0 ? items.join(' | ') : '—';
+  const v = data.vitalSigns;
+  if (!v) return '—';
+  const items = [
+    v.bloodPressure && `BP: ${v.bloodPressure}`,
+    v.pulse && `P: ${v.pulse}`,
+    v.temperature && `T: ${v.temperature}`,
+    v.respiratoryRate && `RR: ${v.respiratoryRate}`,
+    v.spO2 && `SpO2: ${v.spO2}`,
+    v.weight && `Wt: ${v.weight}`,
+    v.height && `Ht: ${v.height}`,
+    v.bmi && `BMI: ${v.bmi}`,
+  ].filter(Boolean);
+  return items.length > 0 ? items.join(' | ') : '—';
 }
 
 // ────────────────────────────────────────────────────
@@ -61,7 +67,7 @@ function vitalsInline(data: OpdNoteData) {
 // Standard Subjective–Objective–Assessment–Plan
 // ────────────────────────────────────────────────────
 function soapTemplate(data: OpdNoteData, doc: DoctorInfo) {
-	return `
+  return `
 	<div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;background:#fff;color:#1a1a1a;">
 		<!-- Thin clinic bar -->
 		<div style="background:#075985;padding:10px 28px;color:#fff;font-size:10px;">
@@ -160,22 +166,44 @@ function soapTemplate(data: OpdNoteData, doc: DoctorInfo) {
 // History/subjective on left, exam/plan on right
 // ────────────────────────────────────────────────────
 function twoColumnTemplate(data: OpdNoteData, doc: DoctorInfo) {
-	const leftSections = [
-		data.chiefComplaints?.length ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Chief Complaints</div><div style="font-size:11px;">${listItems(data.chiefComplaints)}</div></div>` : '',
-		data.historyOfPresentIllness ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">History of Present Illness</div><div style="font-size:11px;">${data.historyOfPresentIllness}</div></div>` : '',
-		data.medicalHistory?.length ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Past Medical History</div><div style="font-size:11px;">${listItems(data.medicalHistory)}</div></div>` : '',
-		data.allergies?.length ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Allergies</div><div style="font-size:11px;color:#DC2626;font-weight:600;">${listItems(data.allergies)}</div></div>` : '',
-	].filter(Boolean).join('');
+  const leftSections = [
+    data.chiefComplaints?.length
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Chief Complaints</div><div style="font-size:11px;">${listItems(data.chiefComplaints)}</div></div>`
+      : '',
+    data.historyOfPresentIllness
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">History of Present Illness</div><div style="font-size:11px;">${data.historyOfPresentIllness}</div></div>`
+      : '',
+    data.medicalHistory?.length
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Past Medical History</div><div style="font-size:11px;">${listItems(data.medicalHistory)}</div></div>`
+      : '',
+    data.allergies?.length
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Allergies</div><div style="font-size:11px;color:#DC2626;font-weight:600;">${listItems(data.allergies)}</div></div>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
 
-	const rightSections = [
-		data.physicalExamination ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Physical Examination</div><div style="font-size:11px;">${data.physicalExamination}</div></div>` : '',
-		data.diagnosis ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Diagnosis</div><div style="font-size:11px;">${data.diagnosis}</div></div>` : '',
-		data.investigations?.length ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Investigations</div><div style="font-size:11px;">${listItems(data.investigations)}</div></div>` : '',
-		data.instructions?.length ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Instructions</div><div style="font-size:11px;">${listItems(data.instructions)}</div></div>` : '',
-		data.followUp ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Follow-up</div><div style="font-size:11px;">${data.followUp}</div></div>` : '',
-	].filter(Boolean).join('');
+  const rightSections = [
+    data.physicalExamination
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Physical Examination</div><div style="font-size:11px;">${data.physicalExamination}</div></div>`
+      : '',
+    data.diagnosis
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Diagnosis</div><div style="font-size:11px;">${data.diagnosis}</div></div>`
+      : '',
+    data.investigations?.length
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Investigations</div><div style="font-size:11px;">${listItems(data.investigations)}</div></div>`
+      : '',
+    data.instructions?.length
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Instructions</div><div style="font-size:11px;">${listItems(data.instructions)}</div></div>`
+      : '',
+    data.followUp
+      ? `<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:#4338CA;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1px solid #C7D2FE;padding-bottom:3px;">Follow-up</div><div style="font-size:11px;">${data.followUp}</div></div>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
 
-	return `
+  return `
 	<div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;background:#fff;color:#1a1a1a;">
 		<!-- Header with left accent bar -->
 		<div style="display:flex;">
@@ -209,9 +237,13 @@ function twoColumnTemplate(data: OpdNoteData, doc: DoctorInfo) {
 		</table>
 
 		<!-- Vitals bar -->
-		${data.vitalSigns ? `<div style="padding:8px 30px;background:#F5F3FF;border-bottom:1px solid #DDD6FE;font-size:10px;">
+		${
+      data.vitalSigns
+        ? `<div style="padding:8px 30px;background:#F5F3FF;border-bottom:1px solid #DDD6FE;font-size:10px;">
 			<b style="color:#4338CA;">VITALS:</b> &nbsp; ${vitalsInline(data)}
-		</div>` : ''}
+		</div>`
+        : ''
+    }
 
 		<!-- Two-column body -->
 		<table style="width:100%;border-collapse:collapse;">
@@ -259,17 +291,17 @@ function twoColumnTemplate(data: OpdNoteData, doc: DoctorInfo) {
 // Numbered fields, bordered boxes — government hospital register style
 // ────────────────────────────────────────────────────
 function structuredFormTemplate(data: OpdNoteData, doc: DoctorInfo) {
-	let fieldNum = 0;
-	const field = (label: string, value: string, colSpan = 1) => {
-		fieldNum++;
-		const cs = colSpan > 1 ? ` colspan="${colSpan}"` : '';
-		return `<td${cs} style="padding:6px 10px;border:1px solid #A7F3D0;vertical-align:top;font-size:11px;">
+  let fieldNum = 0;
+  const field = (label: string, value: string, colSpan = 1) => {
+    fieldNum++;
+    const cs = colSpan > 1 ? ` colspan="${colSpan}"` : '';
+    return `<td${cs} style="padding:6px 10px;border:1px solid #A7F3D0;vertical-align:top;font-size:11px;">
 			<div style="font-size:9px;font-weight:700;color:#065F46;margin-bottom:2px;">${fieldNum}. ${label}</div>
 			<div>${value || '<span style="color:#94A3B8;">—</span>'}</div>
 		</td>`;
-	};
+  };
 
-	return `
+  return `
 	<div style="font-family:'Courier New',Courier,monospace;width:100%;box-sizing:border-box;background:#fff;color:#1a1a1a;">
 		<!-- Government-style header -->
 		<div style="border:2px solid #047857;margin:0;">
@@ -362,7 +394,7 @@ function structuredFormTemplate(data: OpdNoteData, doc: DoctorInfo) {
 // Organized by body systems for physical examination
 // ────────────────────────────────────────────────────
 function systemsBasedTemplate(data: OpdNoteData, doc: DoctorInfo) {
-	return `
+  return `
 	<div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;background:#fff;color:#1a1a1a;">
 		<!-- Red-accent header -->
 		<div style="background:#7F1D1D;padding:14px 28px;color:#fff;">
@@ -428,11 +460,15 @@ function systemsBasedTemplate(data: OpdNoteData, doc: DoctorInfo) {
 			</div>
 
 			<!-- Diagnosis -->
-			${data.diagnosis ? `<div style="margin-bottom:14px;padding:8px 10px;background:#FEF2F2;border-left:4px solid #B91C1C;border-radius:0 4px 4px 0;">
+			${
+        data.diagnosis
+          ? `<div style="margin-bottom:14px;padding:8px 10px;background:#FEF2F2;border-left:4px solid #B91C1C;border-radius:0 4px 4px 0;">
 				<div style="font-size:10px;font-weight:700;color:#B91C1C;text-transform:uppercase;margin-bottom:2px;">Assessment / Diagnosis</div>
 				<div style="font-size:12px;font-weight:600;">${data.diagnosis}</div>
 				${data.clinicalSummary ? `<div style="font-size:11px;color:#6B7280;margin-top:4px;">${data.clinicalSummary}</div>` : ''}
-			</div>` : ''}
+			</div>`
+          : ''
+      }
 
 			<!-- Treatment Plan -->
 			<div style="margin-bottom:14px;">
@@ -474,79 +510,79 @@ function systemsBasedTemplate(data: OpdNoteData, doc: DoctorInfo) {
 // Running narrative with timestamped entries
 // ────────────────────────────────────────────────────
 function progressNoteTemplate(data: OpdNoteData, doc: DoctorInfo) {
-	const timestamp = `${d(data.date, today())} ${timeNow()}`;
-	const entries: string[] = [];
+  const timestamp = `${d(data.date, today())} ${timeNow()}`;
+  const entries: string[] = [];
 
-	if (data.chiefComplaints?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  if (data.chiefComplaints?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — CHIEF COMPLAINT</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.chiefComplaints.join('; ')}</div>
 		</div>`);
-	}
-	if (data.historyOfPresentIllness) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.historyOfPresentIllness) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — HPI</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.historyOfPresentIllness}</div>
 		</div>`);
-	}
-	if (data.medicalHistory?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.medicalHistory?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — PAST HISTORY</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.medicalHistory.join('; ')}</div>
 		</div>`);
-	}
-	if (data.allergies?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.allergies?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#DC2626;font-weight:600;">${timestamp} — ALLERGY ALERT</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #FCA5A5;margin-top:3px;color:#B91C1C;font-weight:600;">${data.allergies.join(', ')}</div>
 		</div>`);
-	}
-	if (data.vitalSigns) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.vitalSigns) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — VITALS</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${vitalsInline(data)}</div>
 		</div>`);
-	}
-	if (data.physicalExamination) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.physicalExamination) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — PHYSICAL EXAM</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.physicalExamination}</div>
 		</div>`);
-	}
-	if (data.diagnosis) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.diagnosis) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — ASSESSMENT</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #C084FC;margin-top:3px;font-weight:600;">${data.diagnosis}${data.clinicalSummary ? `<br/><span style="font-weight:400;color:#6B7280;">${data.clinicalSummary}</span>` : ''}</div>
 		</div>`);
-	}
-	if (data.medications?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.medications?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — ORDERS / MEDICATIONS</div>
 			<div style="padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">
 				${medicationsTable(data.medications, '#FAF5FF', '#5B21B6', '#DDD6FE')}
 			</div>
 		</div>`);
-	}
-	if (data.investigations?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.investigations?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — INVESTIGATIONS ORDERED</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.investigations.join('; ')}</div>
 		</div>`);
-	}
-	if (data.instructions?.length) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.instructions?.length) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — PATIENT INSTRUCTIONS</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.instructions.join('; ')}</div>
 		</div>`);
-	}
-	if (data.followUp) {
-		entries.push(`<div style="margin-bottom:10px;">
+  }
+  if (data.followUp) {
+    entries.push(`<div style="margin-bottom:10px;">
 			<div style="font-size:9px;color:#7C3AED;font-weight:600;">${timestamp} — FOLLOW-UP</div>
 			<div style="font-size:11px;padding-left:12px;border-left:2px solid #DDD6FE;margin-top:3px;">${data.followUp}</div>
 		</div>`);
-	}
+  }
 
-	return `
+  return `
 	<div style="font-family:'SF Mono','Fira Code','Consolas',monospace;width:100%;box-sizing:border-box;background:#FAFAF9;color:#1a1a1a;">
 		<!-- EMR-style top bar -->
 		<div style="background:#1E1B4B;padding:10px 24px;color:#fff;font-size:10px;">
@@ -610,28 +646,29 @@ function progressNoteTemplate(data: OpdNoteData, doc: DoctorInfo) {
 	</div>`;
 }
 
-export const opdTemplateRenderers: Record<string, (data: OpdNoteData, doc: DoctorInfo) => string> = {
-	soap: soapTemplate,
-	'two-column': twoColumnTemplate,
-	'structured-form': structuredFormTemplate,
-	'systems-based': systemsBasedTemplate,
-	'progress-note': progressNoteTemplate,
-};
+export const opdTemplateRenderers: Record<string, (data: OpdNoteData, doc: DoctorInfo) => string> =
+  {
+    soap: soapTemplate,
+    'two-column': twoColumnTemplate,
+    'structured-form': structuredFormTemplate,
+    'systems-based': systemsBasedTemplate,
+    'progress-note': progressNoteTemplate,
+  };
 
 const OpdTemplateRenderer = forwardRef<HTMLDivElement, Props>(
-	({ templateId, opdNoteData, doctorInfo }, ref) => {
-		const render = opdTemplateRenderers[templateId] || soapTemplate;
-		const data: OpdNoteData = opdNoteData || {};
-		const doc = doctorInfo || DEFAULT_DOCTOR_INFO;
+  ({ templateId, opdNoteData, doctorInfo }, ref) => {
+    const render = opdTemplateRenderers[templateId] || soapTemplate;
+    const data: OpdNoteData = opdNoteData || {};
+    const doc = doctorInfo || DEFAULT_DOCTOR_INFO;
 
-		return (
-			<div
-				ref={ref}
-				style={{ position: 'absolute', left: '-9999px', top: 0 }}
-				dangerouslySetInnerHTML={{ __html: render(data, doc) }}
-			/>
-		);
-	}
+    return (
+      <div
+        ref={ref}
+        style={{ position: 'absolute', left: '-9999px', top: 0 }}
+        dangerouslySetInnerHTML={{ __html: render(data, doc) }}
+      />
+    );
+  }
 );
 
 OpdTemplateRenderer.displayName = 'OpdTemplateRenderer';

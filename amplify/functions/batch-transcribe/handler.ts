@@ -163,9 +163,7 @@ export const handler = async (event: BatchTranscribeEvent): Promise<BatchTranscr
           new StartTranscriptionJobCommand({
             TranscriptionJobName: jobName,
             IdentifyMultipleLanguages: true,
-            LanguageOptions: languageOptions
-              .split(',')
-              .map((c) => c.trim()) as LanguageCode[],
+            LanguageOptions: languageOptions.split(',').map((c) => c.trim()) as LanguageCode[],
             MediaFormat: mediaFormat as MediaFormat,
             Media: {
               MediaFileUri: `s3://${BUCKET}/${audioKey}`,

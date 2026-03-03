@@ -4,60 +4,60 @@ import { forwardRef } from 'react';
 import { medicationsTable, listItems } from './template-utils';
 
 interface PrescriptionData {
-	patientName?: string;
-	age?: string;
-	sex?: string;
-	date?: string;
-	address?: string;
-	chiefComplaints?: string[];
-	diagnosis?: string;
-	medications?: Array<{
-		name: string;
-		dosage: string;
-		frequency: string;
-		duration: string;
-		instructions?: string;
-	}>;
-	investigations?: string[];
-	instructions?: string[];
-	followUp?: string;
+  patientName?: string;
+  age?: string;
+  sex?: string;
+  date?: string;
+  address?: string;
+  chiefComplaints?: string[];
+  diagnosis?: string;
+  medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions?: string;
+  }>;
+  investigations?: string[];
+  instructions?: string[];
+  followUp?: string;
 }
 
 export interface DoctorInfo {
-	name: string;
-	specialty: string;
-	tagline: string;
-	clinic: string;
-	phone: string;
-	email: string;
-	website: string;
-	address: string;
+  name: string;
+  specialty: string;
+  tagline: string;
+  clinic: string;
+  phone: string;
+  email: string;
+  website: string;
+  address: string;
 }
 
 export const DEFAULT_DOCTOR_INFO: DoctorInfo = {
-	name: 'Dr. XXXXX',
-	specialty: 'General Medicine',
-	tagline: 'MBBS, MD — Reg. No. XXXXX',
-	clinic: 'XXXXX Hospital & Clinic',
-	phone: '+XX XXX XXX XXXX',
-	email: 'doctor@xxxxx.com',
-	website: 'www.xxxxx.com',
-	address: 'XXXXX, City, State — XXXXXX',
+  name: 'Dr. XXXXX',
+  specialty: 'General Medicine',
+  tagline: 'MBBS, MD — Reg. No. XXXXX',
+  clinic: 'XXXXX Hospital & Clinic',
+  phone: '+XX XXX XXX XXXX',
+  email: 'doctor@xxxxx.com',
+  website: 'www.xxxxx.com',
+  address: 'XXXXX, City, State — XXXXXX',
 };
 
 interface Props {
-	templateId: string;
-	prescriptionData?: PrescriptionData;
-	doctorInfo?: DoctorInfo;
+  templateId: string;
+  prescriptionData?: PrescriptionData;
+  doctorInfo?: DoctorInfo;
 }
 
 const d = (val: string | undefined, fallback: string) => val || fallback;
 const today = () =>
-	new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 // ─── Template: Classic ───
 function classicTemplate(data: PrescriptionData, doc: DoctorInfo) {
-	return `
+  return `
     <div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;padding:0;background:#fff;color:#1a1a1a;">
       <div style="background:linear-gradient(135deg,#2563EB,#3B82F6);padding:24px 32px;color:#fff;">
         <table style="width:100%;border-collapse:collapse;">
@@ -110,7 +110,7 @@ function classicTemplate(data: PrescriptionData, doc: DoctorInfo) {
 
 // ─── Template: Modern Minimal ───
 function modernMinimalTemplate(data: PrescriptionData, doc: DoctorInfo) {
-	return `
+  return `
     <div style="font-family:'Inter','Helvetica Neue',Arial,sans-serif;width:100%;box-sizing:border-box;padding:36px 40px;background:#fff;color:#1a1a1a;">
       <table style="width:100%;border-collapse:collapse;padding-bottom:16px;">
         <tr>
@@ -162,7 +162,7 @@ function modernMinimalTemplate(data: PrescriptionData, doc: DoctorInfo) {
 
 // ─── Template: Clinical ───
 function clinicalTemplate(data: PrescriptionData, doc: DoctorInfo) {
-	return `
+  return `
     <div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;padding:0;background:#fff;color:#1a1a1a;">
       <div style="background:#047857;padding:16px 32px;color:#fff;">
         <table style="width:100%;border-collapse:collapse;">
@@ -239,7 +239,7 @@ function clinicalTemplate(data: PrescriptionData, doc: DoctorInfo) {
 
 // ─── Template: Compact ───
 function compactTemplate(data: PrescriptionData, doc: DoctorInfo) {
-	return `
+  return `
     <div style="font-family:'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;padding:24px 32px;background:#fff;color:#1a1a1a;font-size:11px;">
       <table style="width:100%;border-collapse:collapse;padding-bottom:10px;">
         <tr>
@@ -288,7 +288,7 @@ function compactTemplate(data: PrescriptionData, doc: DoctorInfo) {
 
 // ─── Template: Elegant ───
 function elegantTemplate(data: PrescriptionData, doc: DoctorInfo) {
-	return `
+  return `
     <div style="font-family:Georgia,'Times New Roman',serif;width:100%;box-sizing:border-box;padding:0;background:#fff;color:#1a1a1a;">
       <div style="padding:28px 36px 18px;border-bottom:3px double #92400E;text-align:center;">
         <div style="font-size:24px;font-weight:700;color:#78350F;letter-spacing:1px;">${doc.name}</div>
@@ -330,27 +330,27 @@ function elegantTemplate(data: PrescriptionData, doc: DoctorInfo) {
 }
 
 const templateRenderers: Record<string, (data: PrescriptionData, doc: DoctorInfo) => string> = {
-	classic: classicTemplate,
-	'modern-minimal': modernMinimalTemplate,
-	clinical: clinicalTemplate,
-	compact: compactTemplate,
-	elegant: elegantTemplate,
+  classic: classicTemplate,
+  'modern-minimal': modernMinimalTemplate,
+  clinical: clinicalTemplate,
+  compact: compactTemplate,
+  elegant: elegantTemplate,
 };
 
 const PrescriptionTemplateRenderer = forwardRef<HTMLDivElement, Props>(
-	({ templateId, prescriptionData, doctorInfo }, ref) => {
-		const render = templateRenderers[templateId] || classicTemplate;
-		const data: PrescriptionData = prescriptionData || {};
-		const doc = doctorInfo || DEFAULT_DOCTOR_INFO;
+  ({ templateId, prescriptionData, doctorInfo }, ref) => {
+    const render = templateRenderers[templateId] || classicTemplate;
+    const data: PrescriptionData = prescriptionData || {};
+    const doc = doctorInfo || DEFAULT_DOCTOR_INFO;
 
-		return (
-			<div
-				ref={ref}
-				style={{ position: 'absolute', left: '-9999px', top: 0 }}
-				dangerouslySetInnerHTML={{ __html: render(data, doc) }}
-			/>
-		);
-	}
+    return (
+      <div
+        ref={ref}
+        style={{ position: 'absolute', left: '-9999px', top: 0 }}
+        dangerouslySetInnerHTML={{ __html: render(data, doc) }}
+      />
+    );
+  }
 );
 
 PrescriptionTemplateRenderer.displayName = 'PrescriptionTemplateRenderer';
