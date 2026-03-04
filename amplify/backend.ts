@@ -2,7 +2,9 @@ import { defineBackend } from '@aws-amplify/backend';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cdk from 'aws-cdk-lib';
+import * as constructs from 'constructs';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
+import { VectorBucket, VectorIndex } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/s3vectors';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { storage } from './storage/resource';
@@ -122,8 +124,39 @@ const kbDocsBucket = new s3.Bucket(kbStack, 'KBDocsBucket', {
   autoDeleteObjects: true,
 });
 
+// S3 Vectors — serverless, pay-per-request (no OpenSearch Serverless OCU costs)
+const vectorBucket = new VectorBucket(kbStack, 'KBVectorBucket', {
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+  autoDeleteObjects: true,
+});
+
+// S3 Vectors does not support aws:-prefixed tags that Amplify/CDK adds automatically.
+// Strip all tags from S3 Vectors resources at synth time.
+const s3VectorsTagStripper: cdk.IAspect = {
+  visit(node: constructs.IConstruct) {
+    if (
+      node instanceof cdk.CfnResource &&
+      (node.cfnResourceType === 'AWS::S3Vectors::VectorBucket' ||
+        node.cfnResourceType === 'AWS::S3Vectors::VectorIndex')
+    ) {
+      node.addPropertyDeletionOverride('Tags');
+    }
+  },
+};
+cdk.Aspects.of(kbStack).add(s3VectorsTagStripper);
+
+const vectorIndex = new VectorIndex(kbStack, 'KBVectorIndexV3', {
+  vectorBucket,
+  dimension: 1024, // matches TITAN_EMBED_TEXT_V2_1024
+  // Bedrock KB metadata can exceed S3 Vectors' 2048-byte filterable limit.
+  // Mark the Bedrock-managed fields as non-filterable to avoid ingestion errors.
+  // Note: S3 Vectors uses AMAZON_BEDROCK_TEXT (not _TEXT_CHUNK like OpenSearch).
+  nonFilterableMetadataKeys: ['AMAZON_BEDROCK_METADATA', 'AMAZON_BEDROCK_TEXT'],
+});
+
 const knowledgeBase = new bedrock.VectorKnowledgeBase(kbStack, 'ClinicalKB', {
   embeddingsModel: bedrock.BedrockFoundationModel.TITAN_EMBED_TEXT_V2_1024,
+  vectorStore: vectorIndex,
   instruction:
     'Contains Indian medical reference documents including NLEM 2022, ICMR Standard Treatment Workflows, National Formulary of India, NHM Standard Treatment Guidelines, and ICMR Antimicrobial Resistance Guidelines. Use for clinical decision support, drug formulary lookups, and evidence-based treatment recommendations.',
 });
