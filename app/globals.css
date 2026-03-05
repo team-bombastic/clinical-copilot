@@ -96,6 +96,8 @@ html, body {
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+  justify-content: center;
+  text-align: center;
 }
 
 [data-amplify-theme='glass-theme'] .amplify-button--primary:hover {
@@ -135,6 +137,7 @@ html, body {
 /* More space before submit button */
 [data-amplify-theme='glass-theme'] [data-amplify-form] .amplify-button--primary {
   margin-top: 12px;
+	text-align: center;
 }
 
 [data-amplify-theme='glass-theme'] .amplify-field-group__outer-end .amplify-button:hover {
