@@ -7,7 +7,7 @@ import {
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { pcmProcessorWorkletCode } from './pcm-processor.worklet';
 import { AWS_REGION_DEFAULT, AUDIO_SAMPLE_RATE, AUDIO_ENCODING } from '@/constants/config';
-import { ERR_NOT_AUTHENTICATED, ERR_TRANSCRIPTION_FAILED } from '@/constants/errors';
+import { useTranslations } from 'next-intl';
 
 const FILLER_WORDS =
   /\b(um|uh|erm|ah|hmm|you know|basically|actually|literally|sort of|kind of)\b/gi;
@@ -50,6 +50,7 @@ export interface UseTranscribeReturn {
 }
 
 export function useTranscribe(): UseTranscribeReturn {
+  const tErrors = useTranslations('errors');
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [segments, setSegments] = useState<TranscriptSegment[]>([]);
@@ -164,7 +165,7 @@ export function useTranscribe(): UseTranscribeReturn {
         // 5. Get credentials & create client
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
+        if (!credentials) throw new Error(tErrors('notAuthenticated'));
 
         const region =
           (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
@@ -231,7 +232,7 @@ export function useTranscribe(): UseTranscribeReturn {
           }
         }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : ERR_TRANSCRIPTION_FAILED;
+        const msg = err instanceof Error ? err.message : tErrors('transcriptionFailed');
         if (!stoppedRef.current) {
           setError(msg);
         }
@@ -240,7 +241,7 @@ export function useTranscribe(): UseTranscribeReturn {
         stopRecording();
       }
     },
-    [stopRecording]
+    [stopRecording, tErrors]
   );
 
   return {

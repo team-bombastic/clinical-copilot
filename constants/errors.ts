@@ -1,4 +1,7 @@
 // ─── Authentication ───
+/**
+ * @deprecated Use `next-intl` and `useTranslations('errors')` instead.
+ */
 export const ERR_NOT_AUTHENTICATED = 'Not authenticated';
 
 // ─── Transcription ───

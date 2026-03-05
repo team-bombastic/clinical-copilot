@@ -4,16 +4,10 @@ import { useState, useCallback } from 'react';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { AWS_REGION_DEFAULT } from '@/constants/config';
-import {
-  ERR_NOT_AUTHENTICATED,
-  ERR_ANALYSIS_FUNCTION_NOT_CONFIGURED,
-  ERR_ANALYSIS_FAILED,
-  errLambda,
-} from '@/constants/errors';
+import { useTranslations } from 'next-intl';
 import type {
   ClinicalAnalysisResult,
   Medication,
-  OpdNoteData,
   PrescriptionData,
   ConsultationSegment,
   VitalSigns,
@@ -61,6 +55,7 @@ function getAnalysisFunctionName(): string {
 }
 
 export function useAiAnalysis(): UseAiAnalysisReturn {
+  const tErrors = useTranslations('errors');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ClinicalAnalysisResult | null>(null);
   const [editedResult, setEditedResult] = useState<ClinicalAnalysisResult | null>(null);
@@ -80,7 +75,7 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
       try {
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
+        if (!credentials) throw new Error(tErrors('notAuthenticated'));
 
         const region =
           (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
@@ -105,7 +100,7 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
 
         const functionName = getAnalysisFunctionName();
         if (!functionName) {
-          throw new Error(ERR_ANALYSIS_FUNCTION_NOT_CONFIGURED);
+          throw new Error(tErrors('analysisFunctionNotConfigured'));
         }
 
         const response = await lambda.send(
@@ -117,7 +112,7 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
 
         if (response.FunctionError) {
           const errorPayload = new TextDecoder().decode(response.Payload);
-          throw new Error(errLambda(errorPayload));
+          throw new Error(`Lambda error: ${errorPayload}`);
         }
 
         const result = JSON.parse(new TextDecoder().decode(response.Payload));
@@ -126,12 +121,12 @@ export function useAiAnalysis(): UseAiAnalysisReturn {
         setAnalysisResult(analysis);
         setEditedResult(structuredClone(analysis));
       } catch (err) {
-        setError(err instanceof Error ? err.message : ERR_ANALYSIS_FAILED);
+        setError(err instanceof Error ? err.message : tErrors('analysisFailed'));
       } finally {
         setIsAnalyzing(false);
       }
     },
-    []
+    [tErrors]
   );
 
   const updateField = useCallback(

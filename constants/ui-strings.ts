@@ -4,6 +4,10 @@ export const PAGE_SUBTITLE = 'Dictate or type clinical notes with live transcrip
 export const SIGN_OUT_LABEL = 'Sign out';
 
 // ─── Voice Input ───
+/**
+ * @deprecated Use `next-intl` and `useTranslations` instead.
+ * All strings are now located in `messages/[locale].json`.
+ */
 export const MODE_CONSULTATION = 'Consultation';
 export const MODE_DICTATION = 'Dictation';
 export const MODE_DESC_CONSULTATION =

@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
-import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
+import { useTranslations } from 'next-intl';
 
 export interface UseTranslateReturn {
   translatedText: string;
@@ -13,6 +13,7 @@ export interface UseTranslateReturn {
 }
 
 export function useTranslate(): UseTranslateReturn {
+  const tErrors = useTranslations('errors');
   const [translatedText, setTranslatedText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export function useTranslate(): UseTranslateReturn {
       try {
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
+        if (!credentials) throw new Error('Not authenticated');
 
         const region =
           (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
@@ -63,7 +64,7 @@ export function useTranslate(): UseTranslateReturn {
         }
       } catch (err) {
         if (requestId === lastRequestRef.current) {
-          setTranslateError(err instanceof Error ? err.message : ERR_TRANSLATION_FAILED);
+          setTranslateError(err instanceof Error ? err.message : tErrors('translationFailed'));
         }
       } finally {
         if (requestId === lastRequestRef.current) {
@@ -71,7 +72,7 @@ export function useTranslate(): UseTranslateReturn {
         }
       }
     }, TRANSLATION_DEBOUNCE_MS);
-  }, []);
+  }, [tErrors]);
 
   const clearTranslation = useCallback(() => {
     setTranslatedText('');

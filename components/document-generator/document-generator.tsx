@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { PRESCRIPTION_TEMPLATES } from './prescription-templates';
 import { OPD_TEMPLATES } from './opd-templates';
 import PrescriptionTemplateRenderer, {
@@ -11,19 +11,7 @@ import PrescriptionTemplateRenderer, {
 import OpdTemplateRenderer, { opdTemplateRenderers } from './opd-template-renderer';
 import { PDF_FILENAME_PREFIX, OPD_PDF_FILENAME_PREFIX } from '@/constants/config';
 import type { OpdNoteData, VitalSigns } from '@/types/clinical-analysis';
-import {
-  DOC_GEN_TITLE,
-  DOC_GEN_SUBTITLE,
-  OPD_GEN_TITLE,
-  OPD_GEN_SUBTITLE,
-  DOWNLOAD_PDF_TEXT,
-  SELECT_TEMPLATE_TEXT,
-  SELECT_OPD_TEMPLATE_TEXT,
-  DOC_TYPE_PRESCRIPTION,
-  DOC_TYPE_OPD_NOTE,
-  TOOLTIP_CLOSE,
-  TOOLTIP_DOWNLOAD_PDF,
-} from '@/constants/ui-strings';
+import { useTranslations } from 'next-intl';
 import styles from './document-generator.module.css';
 
 interface ConsultationSegment {
@@ -67,15 +55,15 @@ interface DocumentGeneratorProps {
   clinicalSummary?: string;
 }
 
-const DOCTOR_FIELDS: { key: keyof DoctorInfo; label: string }[] = [
-  { key: 'name', label: 'Doctor Name' },
-  { key: 'specialty', label: 'Specialty' },
-  { key: 'tagline', label: 'Qualifications / Reg. No.' },
-  { key: 'clinic', label: 'Clinic / Hospital' },
-  { key: 'phone', label: 'Phone' },
-  { key: 'email', label: 'Email' },
-  { key: 'website', label: 'Website' },
-  { key: 'address', label: 'Clinic Address' },
+const DOCTOR_FIELDS: { key: keyof DoctorInfo; labelKey: string }[] = [
+  { key: 'name', labelKey: 'doctorName' },
+  { key: 'specialty', labelKey: 'specialty' },
+  { key: 'tagline', labelKey: 'qualifications' },
+  { key: 'clinic', labelKey: 'clinicHospital' },
+  { key: 'phone', labelKey: 'phone' },
+  { key: 'email', labelKey: 'email' },
+  { key: 'website', labelKey: 'website' },
+  { key: 'address', labelKey: 'clinicAddress' },
 ];
 
 export default function DocumentGenerator({
@@ -87,6 +75,9 @@ export default function DocumentGenerator({
   medicalHistory,
   clinicalSummary,
 }: DocumentGeneratorProps) {
+  const t = useTranslations('docGenerator');
+  const tTooltips = useTranslations('tooltips');
+
   const [documentType, setDocumentType] = useState<DocumentType>('prescription');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -97,18 +88,18 @@ export default function DocumentGenerator({
 
   const isOpd = documentType === 'opd';
   const templates = isOpd ? OPD_TEMPLATES : PRESCRIPTION_TEMPLATES;
-  const title = isOpd ? OPD_GEN_TITLE : DOC_GEN_TITLE;
-  const subtitle = isOpd ? OPD_GEN_SUBTITLE : DOC_GEN_SUBTITLE;
-  const selectText = isOpd ? SELECT_OPD_TEMPLATE_TEXT : SELECT_TEMPLATE_TEXT;
+  const title = isOpd ? t('opdTitle') : t('title');
+  const subtitle = isOpd ? t('opdSubtitle') : t('subtitle');
+  const selectText = isOpd ? t('selectOpdTemplate') : t('selectTemplate');
   const filenamePrefix = isOpd ? OPD_PDF_FILENAME_PREFIX : PDF_FILENAME_PREFIX;
 
-  const opdNoteData: OpdNoteData = {
+  const opdNoteData: OpdNoteData = useMemo(() => ({
     ...prescriptionData,
     vitalSigns,
     allergies,
     medicalHistory,
     clinicalSummary,
-  };
+  }), [prescriptionData, vitalSigns, allergies, medicalHistory, clinicalSummary]);
 
   const updateDoctorField = useCallback((key: keyof DoctorInfo, value: string) => {
     setDoctorInfo((prev) => ({ ...prev, [key]: value }));
@@ -188,13 +179,13 @@ export default function DocumentGenerator({
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
-                Back to Analysis
+                {t('backToAnalysis')}
               </button>
             )}
             <h2 className={styles.title}>{title}</h2>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
-          <button onClick={onClose} className={styles.closeButton} title={TOOLTIP_CLOSE}>
+          <button onClick={onClose} className={styles.closeButton} title={tTooltips('close')}>
             <svg
               width="20"
               height="20"
@@ -219,13 +210,13 @@ export default function DocumentGenerator({
                 className={`${styles.docTypeTab} ${!isOpd ? styles.docTypeTabActive : ''}`}
                 onClick={() => handleDocTypeChange('prescription')}
               >
-                {DOC_TYPE_PRESCRIPTION}
+                {t('docTypePrescription')}
               </button>
               <button
                 className={`${styles.docTypeTab} ${isOpd ? styles.docTypeTabActive : ''}`}
                 onClick={() => handleDocTypeChange('opd')}
               >
-                {DOC_TYPE_OPD_NOTE}
+                {t('docTypeOpdNote')}
               </button>
             </div>
             <p className={styles.sectionLabel}>{selectText}</p>
@@ -281,7 +272,7 @@ export default function DocumentGenerator({
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              {showDoctorEditor ? 'Hide' : 'Edit'} Doctor / Clinic Details
+              {showDoctorEditor ? t('hideDoctorDetails') : t('editDoctorDetails')}
               <svg
                 width="14"
                 height="14"
@@ -301,9 +292,9 @@ export default function DocumentGenerator({
             {showDoctorEditor && (
               <div className={styles.doctorEditor}>
                 <div className={styles.doctorGrid}>
-                  {DOCTOR_FIELDS.map(({ key, label }) => (
+                  {DOCTOR_FIELDS.map(({ key, labelKey }) => (
                     <label key={key} className={styles.fieldLabel}>
-                      <span className={styles.fieldName}>{label}</span>
+                      <span className={styles.fieldName}>{t(labelKey)}</span>
                       <input
                         type="text"
                         value={doctorInfo[key]}
@@ -344,19 +335,19 @@ export default function DocumentGenerator({
                 onClick={() => setSelectedTemplate(null)}
                 className={styles.regenerateButton}
               >
-                ← Choose different template
+                {t('chooseDifferentTemplate')}
               </button>
               <button
                 onClick={handleDownloadPdf}
                 disabled={isGenerating}
                 className={styles.downloadButton}
-                title={TOOLTIP_DOWNLOAD_PDF}
+                title={tTooltips('downloadPdf')}
               >
                 <span className={styles.buttonContent}>
                   {isGenerating ? (
                     <>
                       <span className={styles.spinnerSmall} />
-                      Generating PDF...
+                      {t('generatingPdf')}
                     </>
                   ) : (
                     <>
@@ -374,7 +365,7 @@ export default function DocumentGenerator({
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
-                      {DOWNLOAD_PDF_TEXT}
+                      {t('downloadPdf')}
                     </>
                   )}
                 </span>

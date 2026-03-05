@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useTranscribe, TranscriptSegment } from './use-transcribe';
 import { useBatchTranscribe, ConsultationSegment } from './use-batch-transcribe';
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
@@ -18,33 +19,6 @@ import AiAnalysisPanel from '../ai-analysis/ai-analysis-panel';
 import type { PrescriptionData, VitalSigns } from '@/types/clinical-analysis';
 import { LANGUAGE_LABELS, getSpeakerLabel } from '@/constants/mappings';
 import { AWS_REGION_DEFAULT, TRANSLATION_DEBOUNCE_MS } from '@/constants/config';
-import { ERR_NOT_AUTHENTICATED, ERR_TRANSLATION_FAILED } from '@/constants/errors';
-import {
-  MODE_CONSULTATION,
-  MODE_DICTATION,
-  MODE_DESC_CONSULTATION,
-  MODE_DESC_DICTATION,
-  TITLE_CONSULTATION,
-  TITLE_DICTATION,
-  OPTGROUP_REALTIME,
-  OPTGROUP_OTHER,
-  LISTENING_TEXT,
-  PROCESSING_CONSULTATION_TEXT,
-  CLEAR_BUTTON_TEXT,
-  GENERATE_BUTTON_TEXT,
-  TRANSLATION_SECTION_LABEL,
-  TRANSLATING_FALLBACK,
-  BADGE_MIXED_LANGUAGE,
-  BADGE_DETECTED_PREFIX,
-  placeholderConsultation,
-  placeholderStreaming,
-  placeholderBatch,
-  recordingConsultation,
-  recordingBatch,
-  processingBatch,
-  TOOLTIP_STOP_RECORDING,
-  TOOLTIP_START_RECORDING,
-} from '@/constants/ui-strings';
 import styles from './voice-input.module.css';
 
 type InputMode = 'consultation' | 'dictation';
@@ -72,7 +46,7 @@ async function translateSegments(segments: TranscriptSegment[]): Promise<string>
 
   const session = await fetchAuthSession();
   const credentials = session.credentials;
-  if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
+  if (!credentials) throw new Error('Not authenticated');
 
   const region =
     (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
@@ -136,6 +110,9 @@ async function translateSegments(segments: TranscriptSegment[]): Promise<string>
 }
 
 export default function VoiceInput() {
+  const t = useTranslations('voiceInput');
+  const tErrors = useTranslations('errors');
+  const tTooltips = useTranslations('tooltips');
   const [inputMode, setInputMode] = useState<InputMode>('dictation');
   const [selectedLanguage, setSelectedLanguage] = useState('auto');
   const [englishTranslation, setEnglishTranslation] = useState('');
@@ -188,7 +165,7 @@ export default function VoiceInput() {
         }
       } catch (err) {
         if (requestId === lastRequestRef.current) {
-          setTranslateError(err instanceof Error ? err.message : ERR_TRANSLATION_FAILED);
+          setTranslateError(err instanceof Error ? err.message : tErrors('translationFailed'));
         }
       } finally {
         if (requestId === lastRequestRef.current) {
@@ -200,7 +177,7 @@ export default function VoiceInput() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [streaming.segments, hasHindi, isStreaming, streaming.isRecording]);
+  }, [streaming.segments, hasHindi, isStreaming, streaming.isRecording, tErrors]);
 
   const clearAllState = useCallback(() => {
     streaming.clearTranscript();
@@ -316,18 +293,18 @@ export default function VoiceInput() {
             disabled={isBusy}
             className={`${styles.modeButton} ${isConsultation ? styles.modeButtonActive : ''}`}
           >
-            {MODE_CONSULTATION}
+            {t('modeConsultation')}
           </button>
           <button
             onClick={() => handleModeSwitch('dictation')}
             disabled={isBusy}
             className={`${styles.modeButton} ${!isConsultation ? styles.modeButtonActive : ''}`}
           >
-            {MODE_DICTATION}
+            {t('modeDictation')}
           </button>
         </div>
         <p className={styles.modeDescription}>
-          {isConsultation ? MODE_DESC_CONSULTATION : MODE_DESC_DICTATION}
+          {isConsultation ? t('modeDescConsultation') : t('modeDescDictation')}
         </p>
       </div>
 
@@ -335,7 +312,7 @@ export default function VoiceInput() {
       <div className={styles.headerRow}>
         <div className={styles.headerLeft}>
           <span className={styles.cardTitle}>
-            {isConsultation ? TITLE_CONSULTATION : TITLE_DICTATION}
+            {isConsultation ? t('titleConsultation') : t('titleDictation')}
           </span>
           {isConsultation ? (
             <select
@@ -357,14 +334,14 @@ export default function VoiceInput() {
               disabled={isBusy}
               className={styles.languageSelect}
             >
-              <optgroup label={OPTGROUP_REALTIME}>
+              <optgroup label={t('optgroupRealtime')}>
                 {STREAMING_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.label}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label={OPTGROUP_OTHER}>
+              <optgroup label={t('optgroupOther')}>
                 {BATCH_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.label}
@@ -379,7 +356,7 @@ export default function VoiceInput() {
           onClick={handleMicClick}
           disabled={streaming.isConnecting || batch.isProcessing}
           className={`${styles.micButton} ${isRecordingActive ? styles.micButtonRecording : ''}`}
-          title={isRecordingActive ? TOOLTIP_STOP_RECORDING : TOOLTIP_START_RECORDING}
+          title={isRecordingActive ? tTooltips('stopRecording') : tTooltips('startRecording')}
         >
           {streaming.isConnecting ? (
             <span className={styles.spinner} />
@@ -408,11 +385,11 @@ export default function VoiceInput() {
         <div className={styles.statusRow}>
           <div className={styles.listeningIndicator}>
             <span className={styles.listeningDot} />
-            {LISTENING_TEXT}
+            {t('listeningText')}
           </div>
           <div className={styles.statusFlexRow}>
             {mixedLanguage ? (
-              <span className={styles.languageBadge}>{BADGE_MIXED_LANGUAGE}</span>
+              <span className={styles.languageBadge}>{t('badgeMixedLanguage')}</span>
             ) : (
               detectedLabel && <span className={styles.languageBadge}>{detectedLabel}</span>
             )}
@@ -426,8 +403,8 @@ export default function VoiceInput() {
           <div className={styles.listeningIndicator}>
             <span className={styles.listeningDot} />
             {isConsultation
-              ? recordingConsultation(getLanguageLabel(selectedLanguage))
-              : recordingBatch(getLanguageLabel(selectedLanguage))}
+              ? t('recordingConsultation', { lang: getLanguageLabel(selectedLanguage) })
+              : t('recordingBatch', { lang: getLanguageLabel(selectedLanguage) })}
           </div>
         </div>
       )}
@@ -438,8 +415,8 @@ export default function VoiceInput() {
           <div className={styles.processingIndicator}>
             <span className={styles.spinner} />
             {isConsultation
-              ? PROCESSING_CONSULTATION_TEXT
-              : processingBatch(getLanguageLabel(selectedLanguage))}
+              ? t('processingConsultationText')
+              : t('processingBatch', { lang: getLanguageLabel(selectedLanguage) })}
           </div>
         </div>
       )}
@@ -449,12 +426,12 @@ export default function VoiceInput() {
         <div className={styles.statusRow}>
           {mixedLanguage ? (
             <span className={styles.languageBadge}>
-              {BADGE_DETECTED_PREFIX} {BADGE_MIXED_LANGUAGE}
+              {t('badgeDetectedPrefix')} {t('badgeMixedLanguage')}
             </span>
           ) : (
             detectedLabel && (
               <span className={styles.languageBadge}>
-                {BADGE_DETECTED_PREFIX} {detectedLabel}
+                {t('badgeDetectedPrefix')} {detectedLabel}
               </span>
             )
           )}
@@ -507,10 +484,10 @@ export default function VoiceInput() {
           onChange={handleTextChange}
           placeholder={
             isConsultation
-              ? placeholderConsultation(getLanguageLabel(selectedLanguage))
+              ? t('placeholderConsultation', { lang: getLanguageLabel(selectedLanguage) })
               : isStreaming
-                ? placeholderStreaming
-                : placeholderBatch(getLanguageLabel(selectedLanguage))
+                ? t('placeholderStreaming')
+                : t('placeholderBatch', { lang: getLanguageLabel(selectedLanguage) })
           }
           className={styles.textarea}
           rows={6}
@@ -520,7 +497,7 @@ export default function VoiceInput() {
       {/* Clear button */}
       {hasAnyContent && (
         <button onClick={handleClear} className={styles.clearButton}>
-          {CLEAR_BUTTON_TEXT}
+          {t('clearButton')}
         </button>
       )}
 
@@ -531,11 +508,11 @@ export default function VoiceInput() {
       {showTranslation && (
         <div className={styles.translationSection}>
           <div className={styles.translationHeader}>
-            <span className={styles.translationLabel}>{TRANSLATION_SECTION_LABEL}</span>
+            <span className={styles.translationLabel}>{t('translationSectionLabel')}</span>
             {isTranslationLoading && <span className={styles.translatingDot} />}
           </div>
           <textarea
-            value={translationContent || TRANSLATING_FALLBACK}
+            value={translationContent || t('translatingFallback')}
             onChange={(e) => {
               if (isStreaming) {
                 setEnglishTranslation(e.target.value);
@@ -552,7 +529,7 @@ export default function VoiceInput() {
       {/* Generate button — opens AI Analysis first */}
       {hasAnyContent && !isBusy && (
         <button onClick={() => setShowAnalysis(true)} className={styles.generateButton}>
-          {GENERATE_BUTTON_TEXT}
+          {t('generateButton')}
         </button>
       )}
 

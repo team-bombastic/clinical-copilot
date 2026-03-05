@@ -2,12 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { AWS_REGION_DEFAULT, AUDIO_MIME_TYPE, AUDIO_CONTENT_TYPE } from '@/constants/config';
-import {
-  ERR_NOT_AUTHENTICATED,
-  ERR_BATCH_TRANSCRIPTION_FAILED,
-  ERR_RECORDING_FAILED,
-  errLambda,
-} from '@/constants/errors';
+import { useTranslations } from 'next-intl';
 
 export interface ConsultationSegment {
   speaker: string;
@@ -35,6 +30,7 @@ export interface UseBatchTranscribeReturn {
 }
 
 export function useBatchTranscribe(functionName: string): UseBatchTranscribeReturn {
+  const tErrors = useTranslations('errors');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -67,7 +63,7 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
         // Get credentials
         const session = await fetchAuthSession();
         const credentials = session.credentials;
-        if (!credentials) throw new Error(ERR_NOT_AUTHENTICATED);
+        if (!credentials) throw new Error(tErrors('notAuthenticated'));
 
         const region =
           (session.tokens?.idToken?.payload?.['custom:region'] as string) || AWS_REGION_DEFAULT;
@@ -100,7 +96,7 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
 
         if (response.FunctionError) {
           const errorPayload = new TextDecoder().decode(response.Payload);
-          throw new Error(errLambda(errorPayload));
+          throw new Error(`Lambda error: ${errorPayload}`);
         }
 
         const result = JSON.parse(new TextDecoder().decode(response.Payload));
@@ -114,12 +110,12 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
           setTranslatedText((prev) => (prev ? prev + ' ' + newTranslation : newTranslation));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : ERR_BATCH_TRANSCRIPTION_FAILED);
+        setError(err instanceof Error ? err.message : tErrors('batchTranscriptionFailed'));
       } finally {
         setIsProcessing(false);
       }
     },
-    [functionName]
+    [functionName, tErrors]
   );
 
   const stopRecording = useCallback(() => {
@@ -172,10 +168,10 @@ export function useBatchTranscribe(functionName: string): UseBatchTranscribeRetu
         mediaRecorder.start();
         setIsRecording(true);
       } catch (err) {
-        setError(err instanceof Error ? err.message : ERR_RECORDING_FAILED);
+        setError(err instanceof Error ? err.message : tErrors('recordingFailed'));
       }
     },
-    [processAudio]
+    [processAudio, tErrors]
   );
 
   const clearTranscript = useCallback(() => {
