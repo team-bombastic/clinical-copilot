@@ -4,7 +4,7 @@ import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { I18n } from 'aws-amplify/utils';
 import outputs from '@/amplify_outputs.json';
-import { Authenticator, ThemeProvider, Theme, TextField, translations } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider, Theme, TextField, View, translations } from '@aws-amplify/ui-react';
 import LocaleSwitcher from '@/components/locale-switcher/locale-switcher';
 import { useLocale } from 'next-intl';
 
@@ -479,6 +479,11 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 								<LocaleSwitcher />
 							</div>
 						);
+					},
+					SignIn: {
+						Footer() {
+							return null;
+						},
 					},
 					SignUp: {
 						FormFields() {
