@@ -4,9 +4,10 @@ import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { I18n } from 'aws-amplify/utils';
 import outputs from '@/amplify_outputs.json';
-import { Authenticator, ThemeProvider, Theme, TextField, View, translations } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider, Theme, TextField, translations, useAuthenticator } from '@aws-amplify/ui-react';
 import LocaleSwitcher from '@/components/locale-switcher/locale-switcher';
 import { useLocale } from 'next-intl';
+import { useState, useEffect } from 'react';
 
 Amplify.configure(outputs, { ssr: true });
 
@@ -103,8 +104,8 @@ I18n.putVocabularies({
 		'Confirm': 'నిర్ధారించండి',
 		'Confirming': 'నిర్ధారిస్తోంది',
 		'Confirmation Code': 'నిర్ధారణ కోడ్',
-		'Submit': 'సమర్పించండి',
-		'Submitting': 'సమర్పిస్తోంది',
+		'Submit': 'സമർപ്പിക്കുക',
+		'Submitting': 'സമർപ്പിക്കുന്നു',
 		'Resend Code': 'కోడ్ మళ్ళీ పంపండి',
 		'We Emailed You': 'మేము మీకు ఇమెయిల్ చేసాము',
 		'We Sent A Code': 'మేము ఒక కోడ్ పంపాము',
@@ -149,7 +150,7 @@ I18n.putVocabularies({
 		'It may take a minute to arrive': 'ಬರಲು ಒಂದು ನಿಮಿಷ ಬೇಕಾಗಬಹುದು',
 		'Send code': 'ಕೋಡ್ ಕಳುಹಿಸಿ',
 		'Send Code': 'ಕೋಡ್ ಕಳುಹಿಸಿ',
-		'Sending': 'ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ',
+		'Sending': 'ಕಳುहಿಸಲಾಗುತ್ತಿದೆ',
 		'or': 'ಅಥವಾ',
 		'Forgot your password?': 'ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿರಾ?',
 		'Reset your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ',
@@ -179,7 +180,7 @@ I18n.putVocabularies({
 		'Submitting': 'സമർപ്പിക്കുന്നു',
 		'Resend Code': 'കോഡ് വീണ്ടും അയയ്ക്കുക',
 		'We Emailed You': 'ഞങ്ങൾ നിങ്ങൾക്ക് ഇമെയിൽ അയച്ചു',
-		'We Sent A Code': 'ഞങ്ങൾ ഒരു കോഡ് അയച്ചു',
+		'We Sent A Code': 'ഞങ്ങൾ ഒരു code അയച്ചു',
 		'Your code is on the way. To log in, enter the code we emailed to': 'നിങ്ങളുടെ കോഡ് വരുന്നു. ലോഗിൻ ചെയ്യാൻ, ഞങ്ങൾ ഇമെയിൽ ചെയ്ത കോഡ് നൽകുക',
 		'Your code is on the way. To log in, enter the code we sent you': 'നിങ്ങളുടെ കോഡ് വരുന്നു. ലോഗിൻ ചെയ്യാൻ, ഞങ്ങൾ അയച്ച കോഡ് നൽകുക',
 		'It may take a minute to arrive': 'എത്തിച്ചേരാൻ ഒരു മിനിറ്റ് എടുത്തേക്കാം',
@@ -198,7 +199,7 @@ I18n.putVocabularies({
 		'Sign In': 'সাইন ইন',
 		'Sign in': 'সাইন ইন',
 		'Signing in': 'সাইন ইন হচ্ছে',
-		'Sign in to your account': 'আপনার অ্যাকাউন্টে সাইন ইন করুন',
+		'Sign in to your account': 'আপনার অ্যাকাউন্টে সাইன் ইন করুন',
 		'Create Account': 'অ্যাকাউন্ট তৈরি করুন',
 		'Create a new account': 'নতুন অ্যাকাউন্ট তৈরি করুন',
 		'Creating Account': 'অ্যাকাউন্ট তৈরি হচ্ছে',
@@ -309,7 +310,7 @@ I18n.putVocabularies({
 		'Sign in to your account': 'ਆਪਣੇ ਖਾਤੇ ਵਿੱਚ ਸਾਈਨ ਇਨ ਕਰੋ',
 		'Create Account': 'ਖਾਤਾ ਬਣਾਓ',
 		'Create a new account': 'ਨਵਾਂ ਖਾਤਾ ਬਣਾਓ',
-		'Creating Account': 'ਖਾਤਾ ਬਣਾਇਆ ਜਾ ਰਿਹਾ ਹੈ',
+		'Creating Account': 'ਖਾਤਾ बनाया जा रहा है',
 		'Confirm Sign Up': 'ਸਾਈਨ ਅੱਪ ਪੁਸ਼ਟੀ ਕਰੋ',
 		'Back to Sign In': 'ਸਾਈਨ ਇਨ ਤੇ ਵਾਪਸ ਜਾਓ',
 		'Email': 'ਈਮੇਲ',
@@ -343,94 +344,131 @@ const theme: Theme = {
 	tokens: {
 		colors: {
 			background: {
-				primary: { value: 'transparent' },
-				secondary: { value: 'transparent' },
+				primary: { value: 'rgba(255, 255, 255, 0.6)' },
+				secondary: { value: 'rgba(255, 255, 255, 0.4)' },
 			},
 			border: {
-				primary: { value: 'rgba(255,255,255,0.12)' },
-				secondary: { value: 'rgba(255,255,255,0.08)' },
-				focus: { value: 'rgba(165,180,252,0.6)' },
-				error: { value: 'rgba(251,146,60,0.5)' },
+				primary: { value: 'rgba(255, 255, 255, 0.5)' },
+				secondary: { value: 'rgba(0, 0, 0, 0.05)' },
+				focus: { value: '#10b981' },
+				error: { value: '#ef4444' },
 			},
 			font: {
-				primary: { value: 'rgba(255,255,255,0.95)' },
-				secondary: { value: 'rgba(255,255,255,0.6)' },
-				tertiary: { value: 'rgba(255,255,255,0.4)' },
-				interactive: { value: 'rgba(199,210,254,0.9)' },
-				error: { value: 'rgba(251,191,146,0.95)' },
+				primary: { value: '#1e293b' },
+				secondary: { value: '#64748b' },
+				tertiary: { value: '#94a3b8' },
+				interactive: { value: '#10b981' },
+				error: { value: '#b91c1c' },
 			},
 		},
 		radii: {
-			small: { value: '12px' },
-			medium: { value: '16px' },
-			large: { value: '20px' },
+			small: { value: '8px' },
+			medium: { value: '12px' },
+			large: { value: '16px' },
 		},
 		components: {
 			authenticator: {
 				router: {
-					borderWidth: { value: '0' },
-					boxShadow: { value: 'none' },
-					backgroundColor: { value: 'rgba(255,255,255,0.06)' },
+					borderWidth: { value: '1px' },
+					boxShadow: { value: '0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02), inset 0 0 0 1px rgba(255, 255, 255, 0.4)' },
+					backgroundColor: { value: 'rgba(255, 255, 255, 0.6)' },
 				},
 			},
 			button: {
 				primary: {
-					backgroundColor: { value: 'rgba(99,102,241,0.8)' },
+					backgroundColor: { value: '#10b981' },
 					color: { value: '#ffffff' },
-					borderColor: { value: 'rgba(165,180,252,0.2)' },
+					borderColor: { value: '#10b981' },
 					_hover: {
-						backgroundColor: { value: 'rgba(99,102,241,0.95)' },
+						backgroundColor: { value: '#059669' },
 						color: { value: '#ffffff' },
-						borderColor: { value: 'rgba(165,180,252,0.4)' },
+						borderColor: { value: '#059669' },
 					},
 					_active: {
-						backgroundColor: { value: 'rgba(79,82,221,1)' },
+						backgroundColor: { value: '#047857' },
 						color: { value: '#ffffff' },
 					},
 					_focus: {
-						backgroundColor: { value: 'rgba(99,102,241,0.95)' },
+						backgroundColor: { value: '#10b981' },
 						color: { value: '#ffffff' },
 					},
 				},
 				link: {
-					color: { value: 'rgba(165,180,252,0.8)' },
+					color: { value: '#10b981' },
 					_hover: {
 						backgroundColor: { value: 'transparent' },
-						color: { value: 'rgba(199,210,254,1)' },
+						color: { value: '#059669' },
 					},
 				},
 			},
 			tabs: {
 				item: {
-					color: { value: 'rgba(255,255,255,0.45)' },
+					color: { value: '#64748b' },
 					borderColor: { value: 'transparent' },
 					_hover: {
-						color: { value: 'rgba(255,255,255,0.7)' },
+						color: { value: '#1e293b' },
 					},
 					_active: {
-						color: { value: 'rgba(199,210,254,0.95)' },
-						borderColor: { value: 'rgba(165,180,252,0.7)' },
+						color: { value: '#10b981' },
+						borderColor: { value: '#10b981' },
 					},
 				},
 			},
 			fieldcontrol: {
-				borderColor: { value: 'rgba(255,255,255,0.12)' },
-				color: { value: 'rgba(255,255,255,0.95)' },
+				borderColor: { value: 'rgba(0, 0, 0, 0.08)' },
+				color: { value: '#1e293b' },
+				backgroundColor: { value: 'rgba(255, 255, 255, 0.4)' },
 				_focus: {
-					borderColor: { value: 'rgba(165,180,252,0.5)' },
-					boxShadow: { value: '0 0 0 3px rgba(165,180,252,0.12)' },
+					borderColor: { value: '#10b981' },
+					boxShadow: { value: '0 0 0 4px rgba(16, 185, 129, 0.1)' },
+					backgroundColor: { value: 'rgba(255, 255, 255, 0.8)' },
 				},
 				_error: {
-					borderColor: { value: 'rgba(251,146,60,0.5)' },
-					color: { value: 'rgba(255,255,255,0.95)' },
+					borderColor: { value: '#ef4444' },
+					color: { value: '#1e293b' },
 					_focus: {
-						boxShadow: { value: '0 0 0 2px rgba(251,146,60,0.15)' },
+						boxShadow: { value: '0 0 0 2px rgba(239, 68, 68, 0.1)' },
 					},
 				},
 			},
 		},
 	},
 };
+
+function TransitionLoader() {
+	return (
+		<div
+			style={{
+				position: 'fixed',
+				inset: 0,
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				backgroundColor: '#f8fafc',
+				backgroundImage:
+					'radial-gradient(at 0% 0%, rgba(4, 120, 87, 0.25) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(4, 120, 87, 0.2) 0px, transparent 50%), radial-gradient(at 50% 100%, rgba(4, 120, 87, 0.15) 0px, transparent 50%)',
+				zIndex: 9999,
+			}}
+		>
+			<div
+				style={{
+					width: '40px',
+					height: '40px',
+					border: '4px solid #f1f5f9',
+					borderTopColor: '#10b981',
+					borderRadius: '50%',
+					animation: 'spin 0.8s linear infinite',
+				}}
+			/>
+			<style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+		</div>
+	);
+}
 
 export default function AuthenticatorWrapper({ children }: { children: React.ReactNode }) {
 	const locale = useLocale();
@@ -439,70 +477,95 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 
 	return (
 		<ThemeProvider theme={theme}>
-			<Authenticator
-				passwordless={{
-					preferredAuthMethod: 'EMAIL_OTP',
-					hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
-				}}
-				services={{
-					async handleSignIn(input) {
-						try {
-							const response = await signIn(input);
-							if (
-								response.nextStep?.signInStep === 'CONTINUE_SIGN_IN_WITH_FIRST_FACTOR_SELECTION' &&
-								!response.nextStep?.availableChallenges?.includes('EMAIL_OTP')
-							) {
-								const error = new Error(I18n.get('User does not exist. Please create an account.'));
-								error.name = 'UserNotFoundException';
-								throw error;
-							}
-							return response;
-						} catch (error) {
-							const err = error as Error;
-							if (
-								err.name === 'UserNotFoundException' ||
-								err.name === 'NotAuthorizedException' ||
-								err.name === 'EmptySignInPassword'
-							) {
-								const newError = new Error(I18n.get('User does not exist. Please create an account.'));
-								newError.name = 'UserNotFoundException';
-								throw newError;
-							}
+			<Authenticator.Provider>
+				<AuthenticatorContent>{children}</AuthenticatorContent>
+			</Authenticator.Provider>
+		</ThemeProvider>
+	);
+}
+
+function AuthenticatorContent({ children }: { children: React.ReactNode }) {
+	const { authStatus } = useAuthenticator((context) => [context.authStatus]);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    useEffect(() => {
+        if (authStatus === 'authenticated') {
+            setIsTransitioning(true);
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+            }, 1000); // 1s buffer to bridge mount
+            return () => clearTimeout(timer);
+        }
+    }, [authStatus]);
+
+	if (authStatus === 'configuring' || isTransitioning) {
+		return <TransitionLoader />;
+	}
+
+	return (
+		<Authenticator
+			passwordless={{
+				preferredAuthMethod: 'EMAIL_OTP',
+				hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
+			}}
+			services={{
+				async handleSignIn(input) {
+					try {
+						const response = await signIn(input);
+						if (
+							response.nextStep?.signInStep === 'CONTINUE_SIGN_IN_WITH_FIRST_FACTOR_SELECTION' &&
+							!response.nextStep?.availableChallenges?.includes('EMAIL_OTP')
+						) {
+							const error = new Error(I18n.get('User does not exist. Please create an account.'));
+							error.name = 'UserNotFoundException';
 							throw error;
 						}
+						return response;
+					} catch (error) {
+						const err = error as Error;
+						if (
+							err.name === 'UserNotFoundException' ||
+							err.name === 'NotAuthorizedException' ||
+							err.name === 'EmptySignInPassword'
+						) {
+							const newError = new Error(I18n.get('User does not exist. Please create an account.'));
+							newError.name = 'UserNotFoundException';
+							throw newError;
+						}
+						throw error;
+					}
+				},
+			}}
+			components={{
+				Header() {
+					return (
+						<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
+							<LocaleSwitcher />
+						</div>
+					);
+				},
+				SignIn: {
+					Footer() {
+						return null;
 					},
-				}}
-				components={{
-					Header() {
+				},
+				SignUp: {
+					FormFields() {
 						return (
-							<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
-								<LocaleSwitcher />
-							</div>
+							<TextField
+								name="email"
+								label={I18n.get('Email')}
+								placeholder={I18n.get('Enter your email')}
+								type="email"
+								isRequired
+								autoComplete="email"
+							/>
 						);
 					},
-					SignIn: {
-						Footer() {
-							return null;
-						},
-					},
-					SignUp: {
-						FormFields() {
-							return (
-								<TextField
-									name="email"
-									label={I18n.get('Email')}
-									placeholder={I18n.get('Enter your email')}
-									type="email"
-									isRequired
-									autoComplete="email"
-								/>
-							);
-						},
-					},
-				}}
-			>
-				{children}
-			</Authenticator>
-		</ThemeProvider>
+				},
+			}}
+		>
+			{authStatus === 'authenticated' ? children : null}
+		</Authenticator>
 	);
 }

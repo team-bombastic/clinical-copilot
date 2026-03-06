@@ -66,6 +66,115 @@ const DOCTOR_FIELDS: { key: keyof DoctorInfo; labelKey: string }[] = [
   { key: 'address', labelKey: 'clinicAddress' },
 ];
 
+function TemplateThumbnail({ id, color }: { id: string; color: string }) {
+  // Simple CSS-based mini-previews of the templates
+  const renderLayout = () => {
+    switch (id) {
+      case 'classic':
+        return (
+          <div className={styles.thumbClassic}>
+            <div className={styles.thumbHeader} style={{ background: color }} />
+            <div className={styles.thumbContent}>
+              <div className={styles.thumbLineShort} />
+              <div className={styles.thumbLineLong} />
+              <div className={styles.thumbLineLong} />
+            </div>
+          </div>
+        );
+      case 'modern-minimal':
+        return (
+          <div className={styles.thumbMinimal}>
+            <div className={styles.thumbLineShort} />
+            <div className={styles.thumbLineLong} style={{ marginTop: 8 }} />
+            <div className={styles.thumbLineLong} />
+            <div className={styles.thumbLineLong} />
+          </div>
+        );
+      case 'clinical':
+        return (
+          <div className={styles.thumbClinical}>
+            <div className={styles.thumbLineShort} />
+            <div className={styles.thumbTable}>
+              <div className={styles.thumbTableRow} />
+              <div className={styles.thumbTableRow} />
+              <div className={styles.thumbTableRow} />
+            </div>
+          </div>
+        );
+      case 'compact':
+        return (
+          <div className={styles.thumbCompact}>
+            <div className={styles.thumbLineShort} />
+            <div className={styles.thumbGrid}>
+              <div className={styles.thumbLineLong} />
+              <div className={styles.thumbLineLong} />
+              <div className={styles.thumbLineLong} />
+              <div className={styles.thumbLineLong} />
+            </div>
+          </div>
+        );
+      case 'elegant':
+        return (
+          <div className={styles.thumbElegant}>
+            <div className={styles.thumbHeaderCenter} style={{ borderColor: color }} />
+            <div className={styles.thumbLineLong} style={{ width: '40%', margin: '4px auto' }} />
+            <div className={styles.thumbContent} style={{ marginTop: 8 }}>
+              <div className={styles.thumbLineLong} />
+              <div className={styles.thumbLineLong} />
+            </div>
+          </div>
+        );
+      case 'soap':
+        return (
+          <div className={styles.thumbSoap}>
+            <div className={styles.thumbSection}><div className={styles.thumbLabel} style={{ background: color }} /><div className={styles.thumbLineLong} /></div>
+            <div className={styles.thumbSection}><div className={styles.thumbLabel} style={{ background: color }} /><div className={styles.thumbLineLong} /></div>
+            <div className={styles.thumbSection}><div className={styles.thumbLabel} style={{ background: color }} /><div className={styles.thumbLineLong} /></div>
+          </div>
+        );
+      case 'two-column':
+        return (
+          <div className={styles.thumbTwoCol}>
+            <div className={styles.thumbCol}><div className={styles.thumbLineLong} /><div className={styles.thumbLineLong} /></div>
+            <div className={styles.thumbCol} style={{ borderLeft: '1px solid #e2e8f0' }}><div className={styles.thumbLineLong} /><div className={styles.thumbLineLong} /></div>
+          </div>
+        );
+      case 'structured-form':
+        return (
+          <div className={styles.thumbStructured}>
+            <div className={styles.thumbBox} /><div className={styles.thumbBox} /><div className={styles.thumbBox} />
+          </div>
+        );
+      case 'systems-based':
+        return (
+          <div className={styles.thumbSystems}>
+            <div className={styles.thumbGrid2}>
+              <div className={styles.thumbBoxSmall} /><div className={styles.thumbBoxSmall} />
+              <div className={styles.thumbBoxSmall} /><div className={styles.thumbBoxSmall} />
+            </div>
+          </div>
+        );
+      case 'progress-note':
+        return (
+          <div className={styles.thumbProgress}>
+            <div className={styles.thumbLineShort} style={{ opacity: 0.5 }} />
+            <div className={styles.thumbLineLong} />
+            <div className={styles.thumbLineShort} style={{ opacity: 0.5, marginTop: 6 }} />
+            <div className={styles.thumbLineLong} />
+          </div>
+        );
+      default:
+        return <div className={styles.thumbDefault} />;
+    }
+  };
+
+  return (
+    <div className={styles.templateThumbWrapper} style={{ borderColor: color }}>
+      {renderLayout()}
+    </div>
+  );
+}
+
 export default function DocumentGenerator({
   onClose,
   onBackToAnalysis,
@@ -227,26 +336,7 @@ export default function DocumentGenerator({
                   onClick={() => setSelectedTemplate(tmpl.id)}
                   className={styles.templateCard}
                 >
-                  <div
-                    className={styles.templateThumb}
-                    style={{ background: tmpl.thumbnailColor }}
-                  >
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="rgba(255,255,255,0.85)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                    </svg>
-                  </div>
+                  <TemplateThumbnail id={tmpl.id} color={tmpl.thumbnailColor} />
                   <div className={styles.templateInfo}>
                     <span className={styles.templateName}>{tmpl.name}</span>
                     <span className={styles.templateDesc}>{tmpl.description}</span>

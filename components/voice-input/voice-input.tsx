@@ -567,12 +567,6 @@ export default function VoiceInput() {
           mode={isConsultation ? 'consultation' : 'dictation'}
           onClose={() => {
             setShowDocumentGenerator(false);
-            setShowAnalysis(false);
-            setPreProcessedData(undefined);
-            setExtendedVitals(undefined);
-            setExtendedAllergies(undefined);
-            setExtendedMedicalHistory(undefined);
-            setExtendedClinicalSummary(undefined);
           }}
           onBackToAnalysis={() => {
             setShowDocumentGenerator(false);

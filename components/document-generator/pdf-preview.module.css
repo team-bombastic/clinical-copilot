@@ -4,11 +4,9 @@
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.25),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* ─── Toolbar ─── */
@@ -16,28 +14,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .toolbarLeft {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .toolbarIcon {
-  color: rgba(165, 180, 252, 0.5);
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .toolbarLabel {
   font-size: 0.76rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  color: var(--foreground);
   letter-spacing: 0.01em;
   display: flex;
   align-items: center;
@@ -46,10 +44,10 @@
 
 .pageCount {
   font-size: 0.68rem;
-  font-weight: 600;
-  color: rgba(165, 180, 252, 0.45);
-  background: rgba(99, 102, 241, 0.08);
-  padding: 1px 6px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 8px;
   border-radius: 4px;
   letter-spacing: 0.03em;
 }
@@ -58,39 +56,40 @@
 .toolbarCenter {
   display: flex;
   align-items: center;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 2px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid var(--border);
 }
 
 .controlBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 26px;
-  border-radius: 6px;
+  width: 32px;
+  height: 28px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
 }
 
 .controlBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
+  color: var(--foreground);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .controlBtn:active:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
+  background: #e2e8f0;
 }
 
 .controlBtn:disabled {
-  opacity: 0.2;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -98,31 +97,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 26px;
-  padding: 0 6px;
-  border-radius: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
   border: none;
   background: transparent;
-  color: rgba(165, 180, 252, 0.65);
-  font-size: 0.7rem;
-  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-width: 42px;
+  min-width: 48px;
   letter-spacing: 0.02em;
 }
 
 .zoomBadge:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: rgba(165, 180, 252, 0.95);
+  background: #ffffff;
+  color: var(--accent);
 }
 
 .separator {
   width: 1px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 0 3px;
+  background: var(--border);
+  margin: 0 4px;
 }
 
 /* ─── Canvas Viewport ─── */
@@ -130,26 +129,26 @@
   position: relative;
   height: 62vh;
   overflow: auto;
-  background: rgba(8, 10, 18, 0.7);
+  background: #cbd5e1;
 }
 
 /* Custom scrollbar */
 .viewport::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .viewport::-webkit-scrollbar-track {
-  background: transparent;
+  background: #e2e8f0;
 }
 
 .viewport::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: #94a3b8;
+  border-radius: 4px;
 }
 
 .viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: #64748b;
 }
 
 .viewport::-webkit-scrollbar-corner {
@@ -160,17 +159,15 @@
 .canvasWrapper {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 32px;
   min-height: 100%;
 }
 
 .canvas {
   display: block;
-  border-radius: 3px;
-  box-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
-  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
   transition: width 0.15s ease, height 0.15s ease;
 }
 
@@ -182,24 +179,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  background: rgba(8, 10, 18, 0.85);
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
   z-index: 2;
 }
 
 .loadingSpinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(99, 102, 241, 0.2);
-  border-top-color: rgba(165, 180, 252, 0.7);
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f1f5f9;
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spinPreview 0.7s linear infinite;
 }
 
 .loadingText {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.35);
-  font-weight: 500;
+  color: var(--muted-foreground);
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
