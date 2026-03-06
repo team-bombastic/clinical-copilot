@@ -21,6 +21,12 @@ const backend = defineBackend({
   aiAnalysis,
 });
 
+// Disable preventUserExistenceErrors to allow specific Auth errors (like UserNotFoundException)
+backend.auth.resources.cfnResources.cfnUserPoolClient.addPropertyOverride(
+  'PreventUserExistenceErrors',
+  'LEGACY'
+);
+
 // -- Authenticated user policies (streaming transcribe + translate) --
 const authenticatedRole = backend.auth.resources.authenticatedUserIamRole;
 

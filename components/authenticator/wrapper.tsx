@@ -6,7 +6,7 @@ import { I18n } from 'aws-amplify/utils';
 import outputs from '@/amplify_outputs.json';
 import { Authenticator, ThemeProvider, Theme, TextField, translations } from '@aws-amplify/ui-react';
 import LocaleSwitcher from '@/components/locale-switcher/locale-switcher';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 Amplify.configure(outputs, { ssr: true });
 
@@ -457,11 +457,12 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 								throw error;
 							}
 							return response;
-						} catch (error: any) {
+						} catch (error) {
+							const err = error as Error;
 							if (
-								error.name === 'UserNotFoundException' ||
-								error.name === 'NotAuthorizedException' ||
-								error.name === 'EmptySignInPassword'
+								err.name === 'UserNotFoundException' ||
+								err.name === 'NotAuthorizedException' ||
+								err.name === 'EmptySignInPassword'
 							) {
 								const newError = new Error(I18n.get('User does not exist. Please create an account.'));
 								newError.name = 'UserNotFoundException';
