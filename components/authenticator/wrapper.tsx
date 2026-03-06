@@ -486,86 +486,101 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 
 function AuthenticatorContent({ children }: { children: React.ReactNode }) {
 	const { authStatus } = useAuthenticator((context) => [context.authStatus]);
-    const [isTransitioning, setIsTransitioning] = useState(false);
+	const [isPageMounted, setIsPageMounted] = useState(false);
 
-    useEffect(() => {
-        if (authStatus === 'authenticated') {
-            setIsTransitioning(true);
-            const timer = setTimeout(() => {
-                setIsTransitioning(false);
-            }, 1000); // 1s buffer to bridge mount
-            return () => clearTimeout(timer);
-        }
-    }, [authStatus]);
+	useEffect(() => {
+		if (authStatus === 'authenticated') {
+			// We'll set isPageMounted to true via the ChildMountObserver
+		} else {
+			setIsPageMounted(false);
+		}
+	}, [authStatus]);
 
-	if (authStatus === 'configuring' || isTransitioning) {
-		return <TransitionLoader />;
-	}
+	const showLoader = authStatus === 'configuring' || (authStatus === 'authenticated' && !isPageMounted);
 
 	return (
-		<Authenticator
-			passwordless={{
-				preferredAuthMethod: 'EMAIL_OTP',
-				hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
-			}}
-			services={{
-				async handleSignIn(input) {
-					try {
-						const response = await signIn(input);
-						if (
-							response.nextStep?.signInStep === 'CONTINUE_SIGN_IN_WITH_FIRST_FACTOR_SELECTION' &&
-							!response.nextStep?.availableChallenges?.includes('EMAIL_OTP')
-						) {
-							const error = new Error(I18n.get('User does not exist. Please create an account.'));
-							error.name = 'UserNotFoundException';
+		<>
+			{showLoader && <TransitionLoader />}
+			<Authenticator
+				passwordless={{
+					preferredAuthMethod: 'EMAIL_OTP',
+					hiddenAuthMethods: ['PASSWORD', 'SMS_OTP', 'WEB_AUTHN'],
+				}}
+				services={{
+					async handleSignIn(input) {
+						try {
+							const response = await signIn(input);
+							if (
+								response.nextStep?.signInStep === 'CONTINUE_SIGN_IN_WITH_FIRST_FACTOR_SELECTION' &&
+								!response.nextStep?.availableChallenges?.includes('EMAIL_OTP')
+							) {
+								const error = new Error(I18n.get('User does not exist. Please create an account.'));
+								error.name = 'UserNotFoundException';
+								throw error;
+							}
+							return response;
+						} catch (error) {
+							const err = error as Error;
+							if (
+								err.name === 'UserNotFoundException' ||
+								err.name === 'NotAuthorizedException' ||
+								err.name === 'EmptySignInPassword'
+							) {
+								const newError = new Error(I18n.get('User does not exist. Please create an account.'));
+								newError.name = 'UserNotFoundException';
+								throw newError;
+							}
 							throw error;
 						}
-						return response;
-					} catch (error) {
-						const err = error as Error;
-						if (
-							err.name === 'UserNotFoundException' ||
-							err.name === 'NotAuthorizedException' ||
-							err.name === 'EmptySignInPassword'
-						) {
-							const newError = new Error(I18n.get('User does not exist. Please create an account.'));
-							newError.name = 'UserNotFoundException';
-							throw newError;
-						}
-						throw error;
-					}
-				},
-			}}
-			components={{
-				Header() {
-					return (
-						<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
-							<LocaleSwitcher />
-						</div>
-					);
-				},
-				SignIn: {
-					Footer() {
-						return null;
 					},
-				},
-				SignUp: {
-					FormFields() {
+				}}
+				components={{
+					Header() {
 						return (
-							<TextField
-								name="email"
-								label={I18n.get('Email')}
-								placeholder={I18n.get('Enter your email')}
-								type="email"
-								isRequired
-								autoComplete="email"
-							/>
+							<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
+								<LocaleSwitcher />
+							</div>
 						);
 					},
-				},
-			}}
-		>
-			{authStatus === 'authenticated' ? children : null}
-		</Authenticator>
+					SignIn: {
+						Footer() {
+							return null;
+						},
+					},
+					SignUp: {
+						FormFields() {
+							return (
+								<TextField
+									name="email"
+									label={I18n.get('Email')}
+									placeholder={I18n.get('Enter your email')}
+									type="email"
+									isRequired
+									autoComplete="email"
+								/>
+							);
+						},
+					},
+				}}
+			>
+				{authStatus === 'authenticated' ? (
+					<ChildMountObserver onMount={() => setIsPageMounted(true)}>{children}</ChildMountObserver>
+				) : null}
+			</Authenticator>
+		</>
 	);
+}
+
+function ChildMountObserver({ children, onMount }: { children: React.ReactNode; onMount: () => void }) {
+	useEffect(() => {
+		// Using requestAnimationFrame to ensure the loader stays until the first paint of the children
+		const handle = requestAnimationFrame(() => {
+			// A second frame ensures the paint has likely happened
+			requestAnimationFrame(() => {
+				onMount();
+			});
+		});
+		return () => cancelAnimationFrame(handle);
+	}, [onMount]);
+	return <>{children}</>;
 }
