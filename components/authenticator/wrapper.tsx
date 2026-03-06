@@ -439,9 +439,6 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 
 	return (
 		<ThemeProvider theme={theme}>
-			<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
-				<LocaleSwitcher />
-			</div>
 			<Authenticator
 				passwordless={{
 					preferredAuthMethod: 'EMAIL_OTP',
@@ -475,6 +472,13 @@ export default function AuthenticatorWrapper({ children }: { children: React.Rea
 					},
 				}}
 				components={{
+					Header() {
+						return (
+							<div style={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
+								<LocaleSwitcher />
+							</div>
+						);
+					},
 					SignUp: {
 						FormFields() {
 							return (
