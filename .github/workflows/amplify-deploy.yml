@@ -1,0 +1,27 @@
+name: amplify-backend-deploy
+on:
+  push:
+    branches: [ main ]   # change to your branch
+
+jobs:
+  backend-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install node deps
+        run: npm ci
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1    # your region
+      - name: Run ampx pipeline-deploy
+        env:
+          AWS_BRANCH: main
+          AWS_APP_ID: de77tu76yc4w2   # replace with your app id (or set as secret)
+        run: npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID

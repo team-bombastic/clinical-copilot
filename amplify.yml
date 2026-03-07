@@ -4,9 +4,8 @@ backend:
     build:
       commands:
         - npm ci --legacy-peer-deps --cache .npm --prefer-offline
-        # Ensure esbuild is in the PATH for CDK local bundling
-        - export PATH=$(pwd)/node_modules/.bin:$PATH
-        - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+        - npx ampx generate outputs --branch $AWS_BRANCH --app-id $AWS_APP_ID
+
 frontend:
   phases:
     build:
@@ -15,7 +14,7 @@ frontend:
   artifacts:
     baseDirectory: .next
     files:
-      - '**/*'
+      - "**/*"
   cache:
     paths:
       - .next/cache/**/*
