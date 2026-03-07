@@ -6,18 +6,14 @@ import * as constructs from 'constructs';
 import { bedrock } from '@cdklabs/generative-ai-cdk-constructs';
 import { VectorBucket, VectorIndex } from '@cdklabs/generative-ai-cdk-constructs/lib/cdk-lib/s3vectors';
 import { auth } from './auth/resource';
-import { data } from './data/resource';
 import { storage } from './storage/resource';
 import { batchTranscribe } from './functions/batch-transcribe/resource';
-import { generatePrescription } from './functions/generate-prescription/resource';
 import { aiAnalysis } from './functions/ai-analysis/resource';
 
 const backend = defineBackend({
   auth,
-  data,
   storage,
   batchTranscribe,
-  generatePrescription,
   aiAnalysis,
 });
 
@@ -57,16 +53,6 @@ authenticatedRole.addToPrincipalPolicy(
   })
 );
 
-// Grant authenticated user permission to invoke the generate-prescription Lambda
-const prescriptionFn = backend.generatePrescription.resources.lambda;
-
-authenticatedRole.addToPrincipalPolicy(
-  new PolicyStatement({
-    actions: ['lambda:InvokeFunction'],
-    resources: [prescriptionFn.functionArn],
-  })
-);
-
 // Grant authenticated user permission to invoke the ai-analysis Lambda
 const analysisFn = backend.aiAnalysis.resources.lambda;
 
@@ -83,13 +69,8 @@ const bucket = backend.storage.resources.bucket;
 bucket.grantReadWrite(batchFn);
 bucket.grantDelete(batchFn);
 
-// S3 access for prescription Lambda (to save generated documents)
-bucket.grantReadWrite(prescriptionFn);
-
 // Pass bucket name as env var
 backend.batchTranscribe.addEnvironment('STORAGE_BUCKET_NAME', bucket.bucketName);
-
-backend.generatePrescription.addEnvironment('STORAGE_BUCKET_NAME', bucket.bucketName);
 
 // Transcribe + Translate permissions for batch Lambda
 batchFn.addToRolePolicy(
@@ -110,14 +91,6 @@ batchFn.addToRolePolicy(
 batchFn.addToRolePolicy(
   new PolicyStatement({
     actions: ['comprehend:DetectDominantLanguage'],
-    resources: ['*'],
-  })
-);
-
-// Bedrock InvokeModel permission for prescription Lambda
-prescriptionFn.addToRolePolicy(
-  new PolicyStatement({
-    actions: ['bedrock:InvokeModel'],
     resources: ['*'],
   })
 );
@@ -218,7 +191,6 @@ backend.aiAnalysis.addEnvironment('KNOWLEDGE_BASE_ID', knowledgeBase.knowledgeBa
 backend.addOutput({
   custom: {
     batchTranscribeFunctionName: batchFn.functionName,
-    generatePrescriptionFunctionName: prescriptionFn.functionName,
     aiAnalysisFunctionName: analysisFn.functionName,
     kbDocsBucketName: kbDocsBucket.bucketName,
     knowledgeBaseId: knowledgeBase.knowledgeBaseId,

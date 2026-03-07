@@ -46,7 +46,7 @@ if [ -z "$KB_BUCKET" ] || [ -z "$KB_ID" ] || [ -z "$DS_ID" ]; then
   exit 1
 fi
 
-REGION=$(jq -r '.auth.aws_region // "us-east-1"' "$OUTPUTS_FILE")
+REGION=$(jq -r '.auth.aws_region // "ap-south-1"' "$OUTPUTS_FILE")
 
 echo "=== Syncing KB documents ==="
 echo "Bucket:      $KB_BUCKET"
