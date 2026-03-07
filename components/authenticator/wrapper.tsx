@@ -417,11 +417,9 @@ const theme: Theme = {
 			fieldcontrol: {
 				borderColor: { value: 'rgba(0, 0, 0, 0.08)' },
 				color: { value: '#1e293b' },
-				backgroundColor: { value: 'rgba(255, 255, 255, 0.4)' },
 				_focus: {
 					borderColor: { value: '#10b981' },
 					boxShadow: { value: '0 0 0 4px rgba(16, 185, 129, 0.1)' },
-					backgroundColor: { value: 'rgba(255, 255, 255, 0.8)' },
 				},
 				_error: {
 					borderColor: { value: '#ef4444' },
