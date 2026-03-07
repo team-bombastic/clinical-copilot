@@ -611,3 +611,69 @@
   from { opacity: 0; max-height: 0; }
   to { opacity: 1; max-height: 400px; }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    padding: 20px 16px;
+    border-radius: 18px;
+    max-height: 95vh;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .medicationsTable {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .actionsRow {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .actionsRow > * {
+    text-align: center;
+  }
+
+  .proceedButton {
+    width: 100%;
+  }
+
+  .alertCard {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .acknowledgeButton {
+    align-self: flex-start;
+  }
+
+  .evidenceItemRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .loadingContainer {
+    padding: 32px 16px;
+  }
+}

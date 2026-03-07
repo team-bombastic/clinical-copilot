@@ -58,3 +58,24 @@
 .signOutLink:hover {
   color: var(--accent);
 }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .page {
+    padding: 20px 12px;
+    align-items: flex-start;
+  }
+
+  .heading {
+    font-size: 1.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

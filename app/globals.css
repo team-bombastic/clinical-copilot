@@ -223,3 +223,18 @@ html, body {
 [data-amplify-theme='glass-theme'] [data-amplify-footer] {
   color: var(--muted-foreground);
 }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  [data-amplify-theme='glass-theme'] [data-amplify-authenticator] {
+    padding: 16px;
+  }
+
+  [data-amplify-theme='glass-theme'] [data-amplify-form] {
+    padding: 20px;
+  }
+
+  [data-amplify-theme='glass-theme'] [data-amplify-router] {
+    border-radius: 18px !important;
+  }
+}

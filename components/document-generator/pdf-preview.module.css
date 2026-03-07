@@ -206,3 +206,42 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .viewport {
+    height: 50vh;
+  }
+
+  .canvasWrapper {
+    padding: 16px;
+  }
+
+  .toolbar {
+    padding: 6px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .toolbarLabel {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .viewport {
+    height: 45vh;
+  }
+
+  .canvasWrapper {
+    padding: 8px;
+  }
+
+  .toolbarLeft {
+    display: none;
+  }
+
+  .toolbarCenter {
+    margin: 0 auto;
+  }
+}

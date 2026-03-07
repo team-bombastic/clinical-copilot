@@ -178,3 +178,19 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .cardHeader {
+    padding: 20px 20px 0;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .form {
+    padding: 20px;
+    gap: 16px;
+  }
+}
